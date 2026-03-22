@@ -1,164 +1,192 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farhan's Eduverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { 
+            background-color: #080808; 
+            color: white; 
+            font-family: 'Inter', sans-serif; 
+        }
+        /* Custom scrollbar for aesthetic vibe */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #080808; }
+        ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
+    </style>
+</head>
+<body>
 
-const EduverseApp = () => {
-  // --- STATE MANAGEMENT ---
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState('SSC');
-  const [videos, setVideos] = useState([
-    { id: Date.now(), title: "Welcome to Eduverse", cat: "SSC", url: "dQw4w9WgXcQ" }
-  ]);
-
-  // Admin Input States
-  const [newTitle, setNewTitle] = useState('');
-  const [newUrl, setNewUrl] = useState('');
-  const [newCat, setNewCat] = useState('SSC');
-
-  // --- FUNCTIONS ---
-  const addVideo = () => {
-    if (!newTitle || !newUrl) return alert("Fill all fields");
-    
-    // Extract ID from YouTube URL (handles shorts, full links, etc.)
-    const videoId = newUrl.split('v=')[1]?.split('&')[0] || newUrl.split('/').pop();
-    
-    const newEntry = {
-      id: Date.now(),
-      title: newTitle,
-      cat: newCat,
-      url: videoId
-    };
-
-    setVideos([newEntry, ...videos]);
-    setNewTitle('');
-    setNewUrl('');
-    alert("Video Uploaded Successfully!");
-  };
-
-  const deleteVideo = (id) => {
-    setVideos(videos.filter(v => v.id !== id));
-  };
-
-  // --- UI COMPONENTS ---
-
-  // 1. LOGIN SCREEN
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[#111] border border-white/10 rounded-3xl p-10 shadow-2xl">
-          <h1 className="text-4xl font-black text-white text-center mb-2 tracking-tighter">
-            FARHAN'S <span className="text-rose-600 underline">EDUVERSE</span>
-          </h1>
-          <p className="text-gray-500 text-center mb-8 text-sm">Student Portal Login</p>
-          <div className="space-y-4">
-            <input type="tel" placeholder="Phone Number" className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl p-4 text-white focus:ring-2 focus:ring-rose-600 outline-none" />
-            <input type="password" placeholder="Password" className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl p-4 text-white focus:ring-2 focus:ring-rose-600 outline-none" />
-            <button onClick={() => setIsLoggedIn(true)} className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-rose-900/20">
-              Sign In
-            </button>
-            <button onClick={() => {setIsLoggedIn(true); setIsAdmin(true)}} className="w-full text-xs text-gray-600 mt-4 hover:text-rose-500 transition">
-              Operator Login (Admin)
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. MAIN APP DASHBOARD
-  return (
-    <div className="min-h-screen bg-[#080808] text-white">
-      {/* Header */}
-      <nav className="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 backdrop-blur-xl z-50">
-        <h1 className="text-2xl font-black tracking-tighter">
-          FARHAN'S <span className="text-rose-600">EDUVERSE</span>
-        </h1>
-        <div className="flex items-center gap-4">
-          {isAdmin && <span className="bg-rose-600/10 text-rose-500 text-[10px] px-2 py-1 rounded-full border border-rose-500/20">ADMIN MODE</span>}
-          <button onClick={() => {setIsLoggedIn(false); setIsAdmin(false)}} className="text-gray-500 hover:text-white text-sm">Logout</button>
-        </div>
-      </nav>
-
-      <div className="max-w-7xl mx-auto p-6">
-        
-        {/* OPERATOR PANEL (Only visible to Admin) */}
-        {isAdmin && (
-          <div className="mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-3xl p-8">
-            <h2 className="text-xl font-bold mb-6 text-rose-500 flex items-center gap-2">
-              🚀 Operator Control Center
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <input 
-                value={newTitle} onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Video Title (e.g. Physics Lec 01)" 
-                className="bg-[#1a1a1a] border border-white/10 p-3 rounded-lg outline-none focus:border-rose-600"
-              />
-              <input 
-                value={newUrl} onChange={(e) => setNewUrl(e.target.value)}
-                placeholder="YouTube Link/URL" 
-                className="bg-[#1a1a1a] border border-white/10 p-3 rounded-lg outline-none focus:border-rose-600"
-              />
-              <select 
-                value={newCat} onChange={(e) => setNewCat(e.target.value)}
-                className="bg-[#1a1a1a] border border-white/10 p-3 rounded-lg outline-none"
-              >
-                <option value="SSC">SSC</option>
-                <option value="HSC">HSC</option>
-                <option value="Admission">Admission</option>
-              </select>
-              <button onClick={addVideo} className="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg transition-colors">
-                Publish Video
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* CATEGORY TABS */}
-        <div className="flex gap-3 mb-12 overflow-x-auto">
-          {['SSC', 'HSC', 'Admission'].map((tab) => (
-            <button 
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-10 py-3 rounded-2xl font-bold transition-all ${
-                activeTab === tab ? 'bg-rose-600 text-white scale-105 shadow-xl shadow-rose-600/20' : 'bg-[#121212] text-gray-500 hover:bg-[#1a1a1a]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* VIDEO GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {videos.filter(v => v.cat === activeTab).map((video) => (
-            <div key={video.id} className="group relative">
-              <div className="aspect-video bg-black rounded-3xl overflow-hidden border border-white/5 group-hover:border-rose-600/40 transition-all shadow-2xl">
-                <iframe 
-                  className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${video.url}`}
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div className="mt-5 flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg font-bold group-hover:text-rose-500 transition-colors">{video.title}</h3>
-                  <p className="text-gray-500 text-xs mt-1 uppercase tracking-widest">{video.cat} Section</p>
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl">
+            <h1 class="text-4xl font-black text-center mb-2 tracking-tighter">
+                FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span>
+            </h1>
+            <p class="text-gray-500 text-center mb-10 text-sm tracking-widest uppercase">Mentor Portal</p>
+            
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-500 ml-2 uppercase font-bold">Phone Number</label>
+                    <input type="tel" id="login-phone" placeholder="01XXXXXXXXX" 
+                        class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
                 </div>
-                {isAdmin && (
-                  <button onClick={() => deleteVideo(video.id)} className="p-2 text-gray-700 hover:text-red-500">
-                    ✕
-                  </button>
-                )}
-              </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-gray-500 ml-2 uppercase font-bold">Access Password</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" 
+                        class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
+                </div>
+                
+                <button onclick="handleLogin(false)" 
+                    class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl mt-4 transition-all active:scale-95 shadow-lg shadow-rose-900/20">
+                    Enter Classroom
+                </button>
+                
+                <button onclick="handleLogin(true)" 
+                    class="w-full text-[10px] text-gray-600 mt-6 hover:text-rose-500 transition uppercase tracking-widest font-bold">
+                    Operator Access (Admin Only)
+                </button>
             </div>
-          ))}
         </div>
-
-        {videos.filter(v => v.cat === activeTab).length === 0 && (
-          <div className="text-center py-20 opacity-20 italic">No videos uploaded yet in this section.</div>
-        )}
-      </div>
     </div>
-  );
-};
 
-export default EduverseApp;
+    <div id="main-app" class="hidden min-h-screen">
+        <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-50 backdrop-blur-md">
+            <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
+            <div class="flex items-center gap-4">
+                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold">OPERATOR MODE</span>
+                <button onclick="location.reload()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all">Logout</button>
+            </div>
+        </nav>
+
+        <div class="max-w-7xl mx-auto p-6">
+            
+            <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2rem] p-8">
+                <h2 class="text-xl font-bold mb-6 text-rose-500 flex items-center gap-2">🚀 Upload New Class</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
+                    <input id="v-url" placeholder="YouTube URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
+                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none">
+                        <option value="SSC">SSC</option>
+                        <option value="HSC">HSC</option>
+                        <option value="Admission">Admission</option>
+                    </select>
+                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl p-4 transition-all">Publish Now</button>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mb-12 overflow-x-auto pb-2">
+                <button onclick="setTab('SSC')" id="tab-SSC" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20">SSC</button>
+                <button onclick="setTab('HSC')" id="tab-HSC" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all">HSC</button>
+                <button onclick="setTab('Admission')" id="tab-Admission" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all">Admission</button>
+            </div>
+
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        let isAdmin = false;
+        let currentTab = 'SSC';
+        
+        // This stores your videos in the browser. 
+        // Note: For a permanent solution, you'll eventually need a database.
+        let videos = JSON.parse(localStorage.getItem('eduverse_db')) || [
+            { id: 1, title: "Getting Started with Farhan's Eduverse", cat: "SSC", url: "dQw4w9WgXcQ" }
+        ];
+
+        function handleLogin(isOp) {
+            const phone = document.getElementById('login-phone').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if(!phone || !pass) return alert("Please enter credentials");
+
+            isAdmin = isOp;
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            
+            if(isAdmin) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-tag').classList.remove('hidden');
+            }
+            renderVideos();
+        }
+
+        function setTab(category) {
+            currentTab = category;
+            // Update button styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all";
+            });
+            const activeBtn = document.getElementById('tab-' + category);
+            activeBtn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20";
+            
+            renderVideos();
+        }
+
+        function addVideo() {
+            const title = document.getElementById('v-title').value;
+            const urlInput = document.getElementById('v-url').value;
+            const cat = document.getElementById('v-cat').value;
+            
+            if(!title || !urlInput) return alert("Please provide title and URL");
+
+            // Simple YouTube ID extractor
+            let videoId = "";
+            if(urlInput.includes("v=")) {
+                videoId = urlInput.split("v=")[1].split("&")[0];
+            } else if(urlInput.includes("youtu.be/")) {
+                videoId = urlInput.split("youtu.be/")[1].split("?")[0];
+            } else {
+                videoId = urlInput; // Assume it's already an ID
+            }
+
+            const newVideo = { id: Date.now(), title, cat, url: videoId };
+            videos.unshift(newVideo);
+            localStorage.setItem('eduverse_db', JSON.stringify(videos));
+            
+            renderVideos();
+            document.getElementById('v-title').value = "";
+            document.getElementById('v-url').value = "";
+        }
+
+        function deleteVideo(id) {
+            if(!confirm("Delete this lesson?")) return;
+            videos = videos.filter(v => v.id !== id);
+            localStorage.setItem('eduverse_db', JSON.stringify(videos));
+            renderVideos();
+        }
+
+        function renderVideos() {
+            const grid = document.getElementById('video-grid');
+            grid.innerHTML = '';
+            
+            const filtered = videos.filter(v => v.cat === currentTab);
+            
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-700 italic">No classes uploaded in ${currentTab} yet.</div>`;
+                return;
+            }
+
+            filtered.forEach(v => {
+                grid.innerHTML += `
+                    <div class="group">
+                        <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl group-hover:border-rose-600/50 transition-all">
+                            <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <div class="mt-6 flex justify-between items-start px-2">
+                            <div>
+                                <h3 class="text-lg font-bold group-hover:text-rose-500 transition-colors">${v.title}</h3>
+                                <p class="text-[10px] text-gray-600 uppercase tracking-tighter mt-1 font-bold">${v.cat} SECTION</p>
+                            </div>
+                            ${isAdmin ? `<button onclick="deleteVideo(${v.id})" class="text-gray-800 hover:text-rose-600 p-2 transition-colors font-bold">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
