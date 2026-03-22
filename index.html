@@ -5,48 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farhan's Eduverse</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            background-color: #080808; 
-            color: white; 
-            font-family: 'Inter', sans-serif; 
-        }
-        /* Custom scrollbar for aesthetic vibe */
+        body { background-color: #080808; color: white; font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
+        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body>
 
     <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl">
-            <h1 class="text-4xl font-black text-center mb-2 tracking-tighter">
-                FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span>
-            </h1>
-            <p class="text-gray-500 text-center mb-10 text-sm tracking-widest uppercase">Mentor Portal</p>
+        <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl text-center">
+            <h1 class="text-4xl font-black mb-2 tracking-tighter">FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span></h1>
+            <p class="text-gray-500 mb-10 text-sm tracking-widest uppercase font-bold">Mentor Portal</p>
             
-            <div class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-[10px] text-gray-500 ml-2 uppercase font-bold">Phone Number</label>
-                    <input type="tel" id="login-phone" placeholder="01XXXXXXXXX" 
-                        class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-gray-500 ml-2 uppercase font-bold">Access Password</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" 
-                        class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
-                </div>
+            <div class="space-y-4 text-left">
+                <input type="tel" id="login-phone" placeholder="Phone Number" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600 transition-all">
                 
-                <button onclick="handleLogin(false)" 
-                    class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl mt-4 transition-all active:scale-95 shadow-lg shadow-rose-900/20">
-                    Enter Classroom
-                </button>
+                <button onclick="handleLogin(false)" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl mt-4 transition-all active:scale-95 shadow-lg shadow-rose-900/20">Enter Classroom</button>
                 
-                <button onclick="handleLogin(true)" 
-                    class="w-full text-[10px] text-gray-600 mt-6 hover:text-rose-500 transition uppercase tracking-widest font-bold">
-                    Operator Access (Admin Only)
-                </button>
+                <button onclick="handleLogin(true)" class="w-full text-[10px] text-gray-600 mt-6 hover:text-rose-500 transition uppercase tracking-widest font-bold text-center">Operator Access (Admin Only)</button>
             </div>
         </div>
     </div>
@@ -55,31 +36,24 @@
         <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-50 backdrop-blur-md">
             <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
             <div class="flex items-center gap-4">
-    <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold">OPERATOR MODE</span>
-    
-    <button id="notify-btn" onclick="toggleNotifications()" class="text-[10px] text-gray-500 hover:text-white transition-all px-3 uppercase tracking-widest font-bold">
-        🔕 Notifications Off
-    </button>
-
-    <button onclick="logout()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all font-bold">
-        Logout
-    </button>
-</div>
+                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold tracking-tighter">OPERATOR MODE</span>
+                <button id="notify-btn" onclick="toggleNotifications()" class="text-[10px] text-gray-500 hover:text-white transition-all px-3 uppercase tracking-widest font-bold">🔕 Notifications Off</button>
+                <button onclick="logout()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all font-bold">Logout</button>
+            </div>
         </nav>
 
         <div class="max-w-7xl mx-auto p-6">
-            
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2rem] p-8">
-                <h2 class="text-xl font-bold mb-6 text-rose-500 flex items-center gap-2">🚀 Upload New Class</h2>
+                <h2 class="text-xl font-bold mb-6 text-rose-500 flex items-center gap-2">🚀 Upload New Class to Cloud</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
-                    <input id="v-url" placeholder="YouTube URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
+                    <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
                     <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none">
                         <option value="SSC">SSC</option>
                         <option value="HSC">HSC</option>
                         <option value="Admission">Admission</option>
                     </select>
-                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl p-4 transition-all">Publish Now</button>
+                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl p-4 transition-all shadow-lg shadow-rose-900/20">Publish Now</button>
                 </div>
             </div>
 
@@ -95,20 +69,22 @@
     </div>
 
     <script>
-        let isAdmin = false;
-        let currentTab = 'SSC';
-        let notificationsEnabled = localStorage.getItem('eduverse_notifications') === 'true';
-        
+        // SUPABASE CONNECTION
+        const SB_URL = "https://zfvldodcinjjpjcfgqdt.supabase.co"; 
+        const SB_KEY = "sb_publishable_JtkUYO8tBkzdIxz9xStn5A_B9YQgHwE";
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+        // MENTOR CREDENTIALS
         const MASTER_PHONE = "01533082057";
         const MASTER_PASS = "FARHAN03";
 
-        // Load videos from storage
-        let videos = JSON.parse(localStorage.getItem('eduverse_db')) || [
-            { id: 1, title: "Getting Started with Farhan's Eduverse", cat: "SSC", url: "dQw4w9WgXcQ" }
-        ];
+        let isAdmin = false;
+        let currentTab = 'SSC';
+        let videos = [];
+        let notificationsEnabled = localStorage.getItem('eduverse_notifications') === 'true';
 
-        // --- NEW: AUTO-LOGIN SYSTEM ---
-        window.onload = function() {
+        // STARTUP LOGIC
+        window.onload = async function() {
             const savedUser = localStorage.getItem('eduverse_session');
             if (savedUser) {
                 const userData = JSON.parse(savedUser);
@@ -116,26 +92,36 @@
                 showApp();
             }
             updateNotifyUI();
+            await fetchVideos();
         };
+
+        async function fetchVideos() {
+            const { data, error } = await supabaseClient
+                .from('videos')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (!error) {
+                videos = data;
+                renderVideos();
+            }
+        }
 
         function handleLogin(isOp) {
             const phone = document.getElementById('login-phone').value;
             const pass = document.getElementById('login-pass').value;
-
             if(!phone || !pass) return alert("Please enter credentials");
 
             if(isOp) {
                 if(phone === MASTER_PHONE && pass === MASTER_PASS) {
                     isAdmin = true;
                 } else {
-                    alert("❌ Access Denied: Incorrect Operator Credentials.");
-                    return;
+                    return alert("❌ Unauthorized Operator Credentials!");
                 }
             } else {
                 isAdmin = false;
             }
 
-            // SAVE SESSION: This keeps them logged in on refresh
             localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
             showApp();
         }
@@ -143,7 +129,6 @@
         function showApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            
             if(isAdmin) {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-tag').classList.remove('hidden');
@@ -156,79 +141,49 @@
             location.reload();
         }
 
-        // --- NOTIFICATION SYSTEM ---
-        function toggleNotifications() {
-            notificationsEnabled = !notificationsEnabled;
-            localStorage.setItem('eduverse_notifications', notificationsEnabled);
-            updateNotifyUI();
-            
-            const status = notificationsEnabled ? "ENABLED" : "DISABLED";
-            alert("Notifications " + status);
-        }
-
-        function updateNotifyUI() {
-            const btn = document.getElementById('notify-btn');
-            if (notificationsEnabled) {
-                btn.innerHTML = "🔔 Notifications On";
-                btn.classList.add('text-rose-500');
-            } else {
-                btn.innerHTML = "🔕 Notifications Off";
-                btn.classList.remove('text-rose-500');
-            }
-        }
-
-        function setTab(category) {
-            currentTab = category;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all";
-            });
-            const activeBtn = document.getElementById('tab-' + category);
-            activeBtn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20";
-            renderVideos();
-        }
-
-        function addVideo() {
+        async function addVideo() {
             const title = document.getElementById('v-title').value;
             const urlInput = document.getElementById('v-url').value;
             const cat = document.getElementById('v-cat').value;
-            
-            if(!title || !urlInput) return alert("Please provide title and URL");
+            if(!title || !urlInput) return alert("Fill all fields");
 
-            let videoId = "";
-            if(urlInput.includes("v=")) {
-                videoId = urlInput.split("v=")[1].split("&")[0];
-            } else if(urlInput.includes("youtu.be/")) {
-                videoId = urlInput.split("youtu.be/")[1].split("?")[0];
+            let videoId = urlInput.includes("v=") ? urlInput.split("v=")[1].split("&")[0] : 
+                          urlInput.includes("youtu.be/") ? urlInput.split("youtu.be/")[1].split("?")[0] : urlInput.split("/").pop();
+
+            const { error } = await supabaseClient
+                .from('videos')
+                .insert([{ title, category: cat, url: videoId }]);
+
+            if (!error) {
+                alert("🚀 Published to Cloud Successfully!");
+                document.getElementById('v-title').value = "";
+                document.getElementById('v-url').value = "";
+                fetchVideos();
             } else {
-                videoId = urlInput;
+                alert("Cloud Error: " + error.message);
             }
-
-            const newVideo = { id: Date.now(), title, cat, url: videoId };
-            videos.unshift(newVideo);
-            localStorage.setItem('eduverse_db', JSON.stringify(videos));
-            
-            // SIMULATE NOTIFICATION for users who have it on
-            if(notificationsEnabled) {
-                console.log("Push Notification Sent: New video added in " + cat);
-            }
-
-            renderVideos();
-            document.getElementById('v-title').value = "";
-            document.getElementById('v-url').value = "";
-            alert("✅ Video Published Successfully!");
         }
 
-        function deleteVideo(id) {
-            if(!confirm("Delete this lesson?")) return;
-            videos = videos.filter(v => v.id !== id);
-            localStorage.setItem('eduverse_db', JSON.stringify(videos));
+        async function deleteVideo(id) {
+            if(!confirm("Delete this lesson from Cloud forever?")) return;
+            const { error } = await supabaseClient.from('videos').delete().eq('id', id);
+            if(!error) fetchVideos();
+        }
+
+        function setTab(t) {
+            currentTab = t;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all";
+            });
+            const activeBtn = document.getElementById('tab-' + t);
+            activeBtn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20";
             renderVideos();
         }
 
         function renderVideos() {
             const grid = document.getElementById('video-grid');
             grid.innerHTML = '';
-            const filtered = videos.filter(v => v.cat === currentTab);
+            const filtered = videos.filter(v => v.category === currentTab);
             
             if(filtered.length === 0) {
                 grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-700 italic border-2 border-dashed border-white/5 rounded-[2rem]">No classes uploaded in ${currentTab} yet.</div>`;
@@ -244,13 +199,25 @@
                         <div class="mt-6 flex justify-between items-start px-2">
                             <div>
                                 <h3 class="text-lg font-bold group-hover:text-rose-500 transition-colors">${v.title}</h3>
-                                <p class="text-[10px] text-gray-600 uppercase tracking-tighter mt-1 font-bold">${v.cat} SECTION</p>
+                                <p class="text-[10px] text-gray-600 uppercase tracking-tighter mt-1 font-bold">${v.category} SECTION</p>
                             </div>
                             ${isAdmin ? `<button onclick="deleteVideo(${v.id})" class="text-gray-800 hover:text-rose-600 p-2 transition-colors font-bold">✕</button>` : ''}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
+        }
+
+        function toggleNotifications() {
+            notificationsEnabled = !notificationsEnabled;
+            localStorage.setItem('eduverse_notifications', notificationsEnabled);
+            updateNotifyUI();
+            alert(notificationsEnabled ? "🔔 Notifications Enabled" : "🔕 Notifications Disabled");
+        }
+
+        function updateNotifyUI() {
+            const btn = document.getElementById('notify-btn');
+            btn.innerHTML = notificationsEnabled ? "🔔 Notifications On" : "🔕 Notifications Off";
+            notificationsEnabled ? btn.classList.add('text-rose-500') : btn.classList.remove('text-rose-500');
         }
     </script>
 </body>
