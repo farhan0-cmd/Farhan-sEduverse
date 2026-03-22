@@ -55,9 +55,16 @@
         <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-50 backdrop-blur-md">
             <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
             <div class="flex items-center gap-4">
-                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold">OPERATOR MODE</span>
-                <button onclick="location.reload()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all">Logout</button>
-            </div>
+    <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold">OPERATOR MODE</span>
+    
+    <button id="notify-btn" onclick="toggleNotifications()" class="text-[10px] text-gray-500 hover:text-white transition-all px-3 uppercase tracking-widest font-bold">
+        🔕 Notifications Off
+    </button>
+
+    <button onclick="logout()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all font-bold">
+        Logout
+    </button>
+</div>
         </nav>
 
         <div class="max-w-7xl mx-auto p-6">
@@ -90,15 +97,26 @@
     <script>
         let isAdmin = false;
         let currentTab = 'SSC';
+        let notificationsEnabled = localStorage.getItem('eduverse_notifications') === 'true';
         
-        // YOUR SECRET ACCESS
         const MASTER_PHONE = "01533082057";
         const MASTER_PASS = "FARHAN03";
 
-        // This stores your videos in the browser for testing.
+        // Load videos from storage
         let videos = JSON.parse(localStorage.getItem('eduverse_db')) || [
             { id: 1, title: "Getting Started with Farhan's Eduverse", cat: "SSC", url: "dQw4w9WgXcQ" }
         ];
+
+        // --- NEW: AUTO-LOGIN SYSTEM ---
+        window.onload = function() {
+            const savedUser = localStorage.getItem('eduverse_session');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                isAdmin = userData.isAdmin;
+                showApp();
+            }
+            updateNotifyUI();
+        };
 
         function handleLogin(isOp) {
             const phone = document.getElementById('login-phone').value;
@@ -106,24 +124,57 @@
 
             if(!phone || !pass) return alert("Please enter credentials");
 
-            // --- ADMIN SECURITY CHECK ---
             if(isOp) {
                 if(phone === MASTER_PHONE && pass === MASTER_PASS) {
                     isAdmin = true;
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    document.getElementById('admin-tag').classList.remove('hidden');
                 } else {
                     alert("❌ Access Denied: Incorrect Operator Credentials.");
-                    return; // Stops them from logging in
+                    return;
                 }
             } else {
-                // Regular student login
                 isAdmin = false;
             }
 
+            // SAVE SESSION: This keeps them logged in on refresh
+            localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
+            showApp();
+        }
+
+        function showApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
+            
+            if(isAdmin) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('admin-tag').classList.remove('hidden');
+            }
             renderVideos();
+        }
+
+        function logout() {
+            localStorage.removeItem('eduverse_session');
+            location.reload();
+        }
+
+        // --- NOTIFICATION SYSTEM ---
+        function toggleNotifications() {
+            notificationsEnabled = !notificationsEnabled;
+            localStorage.setItem('eduverse_notifications', notificationsEnabled);
+            updateNotifyUI();
+            
+            const status = notificationsEnabled ? "ENABLED" : "DISABLED";
+            alert("Notifications " + status);
+        }
+
+        function updateNotifyUI() {
+            const btn = document.getElementById('notify-btn');
+            if (notificationsEnabled) {
+                btn.innerHTML = "🔔 Notifications On";
+                btn.classList.add('text-rose-500');
+            } else {
+                btn.innerHTML = "🔕 Notifications Off";
+                btn.classList.remove('text-rose-500');
+            }
         }
 
         function setTab(category) {
@@ -148,8 +199,6 @@
                 videoId = urlInput.split("v=")[1].split("&")[0];
             } else if(urlInput.includes("youtu.be/")) {
                 videoId = urlInput.split("youtu.be/")[1].split("?")[0];
-            } else if(urlInput.includes("shorts/")) {
-                videoId = urlInput.split("shorts/")[1].split("?")[0];
             } else {
                 videoId = urlInput;
             }
@@ -158,6 +207,11 @@
             videos.unshift(newVideo);
             localStorage.setItem('eduverse_db', JSON.stringify(videos));
             
+            // SIMULATE NOTIFICATION for users who have it on
+            if(notificationsEnabled) {
+                console.log("Push Notification Sent: New video added in " + cat);
+            }
+
             renderVideos();
             document.getElementById('v-title').value = "";
             document.getElementById('v-url').value = "";
