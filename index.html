@@ -91,8 +91,11 @@
         let isAdmin = false;
         let currentTab = 'SSC';
         
-        // This stores your videos in the browser. 
-        // Note: For a permanent solution, you'll eventually need a database.
+        // YOUR SECRET ACCESS
+        const MASTER_PHONE = "01533082057";
+        const MASTER_PASS = "FARHAN03";
+
+        // This stores your videos in the browser for testing.
         let videos = JSON.parse(localStorage.getItem('eduverse_db')) || [
             { id: 1, title: "Getting Started with Farhan's Eduverse", cat: "SSC", url: "dQw4w9WgXcQ" }
         ];
@@ -103,26 +106,33 @@
 
             if(!phone || !pass) return alert("Please enter credentials");
 
-            isAdmin = isOp;
+            // --- ADMIN SECURITY CHECK ---
+            if(isOp) {
+                if(phone === MASTER_PHONE && pass === MASTER_PASS) {
+                    isAdmin = true;
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    document.getElementById('admin-tag').classList.remove('hidden');
+                } else {
+                    alert("❌ Access Denied: Incorrect Operator Credentials.");
+                    return; // Stops them from logging in
+                }
+            } else {
+                // Regular student login
+                isAdmin = false;
+            }
+
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            
-            if(isAdmin) {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('admin-tag').classList.remove('hidden');
-            }
             renderVideos();
         }
 
         function setTab(category) {
             currentTab = category;
-            // Update button styles
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all";
             });
             const activeBtn = document.getElementById('tab-' + category);
             activeBtn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20";
-            
             renderVideos();
         }
 
@@ -133,14 +143,15 @@
             
             if(!title || !urlInput) return alert("Please provide title and URL");
 
-            // Simple YouTube ID extractor
             let videoId = "";
             if(urlInput.includes("v=")) {
                 videoId = urlInput.split("v=")[1].split("&")[0];
             } else if(urlInput.includes("youtu.be/")) {
                 videoId = urlInput.split("youtu.be/")[1].split("?")[0];
+            } else if(urlInput.includes("shorts/")) {
+                videoId = urlInput.split("shorts/")[1].split("?")[0];
             } else {
-                videoId = urlInput; // Assume it's already an ID
+                videoId = urlInput;
             }
 
             const newVideo = { id: Date.now(), title, cat, url: videoId };
@@ -150,6 +161,7 @@
             renderVideos();
             document.getElementById('v-title').value = "";
             document.getElementById('v-url').value = "";
+            alert("✅ Video Published Successfully!");
         }
 
         function deleteVideo(id) {
@@ -162,11 +174,10 @@
         function renderVideos() {
             const grid = document.getElementById('video-grid');
             grid.innerHTML = '';
-            
             const filtered = videos.filter(v => v.cat === currentTab);
             
             if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-700 italic">No classes uploaded in ${currentTab} yet.</div>`;
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-700 italic border-2 border-dashed border-white/5 rounded-[2rem]">No classes uploaded in ${currentTab} yet.</div>`;
                 return;
             }
 
