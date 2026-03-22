@@ -107,17 +107,23 @@
             if (!error) { videos = data; renderVideos(); }
         }
 
-        function handleLogin(isOp) {
-            const phone = document.getElementById('login-phone').value;
-            const pass = document.getElementById('login-pass').value;
-            if(!phone || !pass) return alert("Please enter credentials");
-            if(isOp) {
-                if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
-                else { return alert("❌ Unauthorized!"); }
-            } else { isAdmin = false; }
-            localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
-            showApp();
-        }
+        async function handleLogin(isOp) {
+    const phone = document.getElementById('login-phone').value;
+    const pass = document.getElementById('login-pass').value;
+    if(!phone) return alert("Please enter credentials");
+
+    if(isOp) {
+        if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
+        else { return alert("❌ Unauthorized!"); }
+    } else {
+        isAdmin = false;
+        // This line saves the student to your "profiles" table
+        await supabaseClient.from('profiles').upsert({ phone: phone, last_login: new Date() }, { onConflict: 'phone' });
+    }
+
+    localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
+    showApp();
+}
 
         function showApp() {
             document.getElementById('login-page').classList.add('hidden');
