@@ -47,8 +47,16 @@
 
         <div class="max-w-7xl mx-auto p-6">
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2rem] p-8">
-                <h2 class="text-xl font-bold mb-6 text-rose-500">🚀 Upload to Cloud</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="flex justify-between items-start mb-6">
+    <div>
+        <h2 class="text-xl font-bold text-rose-500">🚀 Upload to Cloud</h2>
+        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Operator Dashboard</p>
+    </div>
+    <div class="bg-[#1a1a1a] border border-white/5 px-6 py-3 rounded-2xl text-right shadow-xl">
+        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Total Students</span>
+        <span id="user-count" class="text-3xl font-black text-white">0</span>
+    </div>
+</div>                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
                     <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
                     <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none">
@@ -129,11 +137,28 @@
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             if(isAdmin) { document.getElementById('admin-panel').classList.remove('hidden'); document.getElementById('admin-tag').classList.remove('hidden'); }
-            renderVideos();
-        }
+            fetchUserCount(); // <--- PASTE THIS LINE HERE
+    }
+    
+    renderVideos();
+}
+    
 
         function logout() { localStorage.removeItem('eduverse_session'); location.reload(); }
+async function fetchUserCount() {
+    if (!isAdmin) return;
+    
+    // This counts how many rows are in your "profiles" table
+    const { count, error } = await supabaseClient
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
 
+    if (!error) {
+        document.getElementById('user-count').innerText = count;
+    } else {
+        console.error("Counter Error:", error.message);
+    }
+}
         async function addVideo() {
             const title = document.getElementById('v-title').value;
             const urlInput = document.getElementById('v-url').value;
