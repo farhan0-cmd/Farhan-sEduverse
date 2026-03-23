@@ -134,11 +134,14 @@
 }
 
         function showApp() {
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            if(isAdmin) { document.getElementById('admin-panel').classList.remove('hidden'); document.getElementById('admin-tag').classList.remove('hidden'); }
-            fetchUserCount(); // <--- PASTE THIS LINE HERE
-    }
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    
+    if(isAdmin) { 
+        document.getElementById('admin-panel').classList.remove('hidden'); 
+        document.getElementById('admin-tag').classList.remove('hidden');
+        fetchUserCount(); // This should be INSIDE the { } brackets
+    } // <--- The bracket must be HERE
     
     renderVideos();
 }
