@@ -19,7 +19,8 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
-        .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card { background: rgba(17, 17, 17, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold tracking-widest">OPERATOR</span>
+                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold tracking-widest uppercase">Operator</span>
                 <button onclick="logout()" class="bg-white/5 hover:bg-rose-600 px-5 py-2 rounded-xl text-xs transition-all font-bold">Logout</button>
             </div>
         </nav>
@@ -61,11 +62,11 @@
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2.5rem] p-10">
                 <div class="flex justify-between items-start mb-8">
                     <div>
-                        <h2 class="text-2xl font-black text-rose-500 italic">OPERATOR CONTROL</h2>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Manage Cloud Database</p>
+                        <h2 class="text-2xl font-black text-rose-500 italic uppercase">Operator Dashboard</h2>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Manage Cloud Storage & Broadcasts</p>
                     </div>
                     <div class="bg-[#050505] border border-white/5 px-8 py-4 rounded-3xl text-right shadow-2xl">
-                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Live Student Count</span>
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Total Students</span>
                         <span id="user-count" class="text-4xl font-black text-white">0</span>
                     </div>
                 </div>
@@ -82,10 +83,10 @@
                 </div>
 
                 <div class="pt-8 border-t border-white/5">
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">📢 Broadcast Notice</h3>
+                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
                     <div class="flex flex-col md:flex-row gap-4">
-                        <input id="notice-input" placeholder="What's happening today?" class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                        <button onclick="updateNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">Update Notice</button>
+                        <input id="notice-input" placeholder="Type your message for all students here..." class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                        <button onclick="updateNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl">Push Broadcast</button>
                     </div>
                 </div>
             </div>
@@ -98,7 +99,7 @@
                 </div>
                 
                 <div class="relative w-full md:w-96">
-                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search through lectures..." 
+                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search lectures..." 
                         class="w-full bg-[#111] border border-white/5 rounded-[1.8rem] p-5 pl-14 text-sm outline-none focus:border-rose-600/50 transition-all shadow-xl">
                     <span class="absolute left-6 top-5 text-gray-600">🔍</span>
                 </div>
@@ -108,19 +109,19 @@
         </div>
     </div>
 
-    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8">
+    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 max-w-[85%] bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8">
         <div class="flex justify-between items-center mb-10">
             <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
             <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-rose-600 transition-all">✕</button>
         </div>
         
         <div id="sidebar-content" class="space-y-6">
-            <div class="bg-rose-600/5 border border-rose-600/20 p-6 rounded-[2rem]">
-                <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Announcement from Farhan</p>
-                <p id="sidebar-notice-text" class="text-gray-200 leading-relaxed italic text-sm">Loading latest updates...</p>
-                <div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
-                    <span class="text-[9px] text-gray-600 font-bold uppercase" id="notice-time"></span>
-                    <span class="px-2 py-1 bg-rose-600/10 text-rose-500 text-[8px] font-bold rounded">LIVE</span>
+            <div class="bg-rose-600/5 border border-rose-600/20 p-6 rounded-[2rem] shadow-inner">
+                <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Admin Announcement</p>
+                <p id="sidebar-notice-text" class="text-gray-200 leading-relaxed italic text-sm md:text-base">No active notices.</p>
+                <div class="mt-8 pt-4 border-t border-white/5 flex justify-between items-center">
+                    <span class="text-[9px] text-gray-600 font-bold uppercase tracking-widest" id="notice-time"></span>
+                    <span class="px-2 py-1 bg-rose-600/20 text-rose-500 text-[8px] font-black rounded uppercase">Live</span>
                 </div>
             </div>
         </div>
@@ -158,11 +159,11 @@
         async function handleLogin(isOp) {
             const phone = document.getElementById('login-phone').value;
             const pass = document.getElementById('login-pass').value;
-            if(!phone) return alert("Enter credentials, mentor!");
+            if(!phone) return alert("Credentials required!");
 
             if(isOp) {
                 if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
-                else { return alert("❌ Unauthorized Access!"); }
+                else { return alert("❌ Unauthorized Operator!"); }
             } else {
                 isAdmin = false;
                 await supabaseClient.from('profiles').upsert({ phone: phone, last_login: new Date() }, { onConflict: 'phone' });
@@ -192,7 +193,7 @@
             if(sb.classList.contains('translate-x-full')) {
                 sb.classList.remove('translate-x-full');
                 ov.classList.remove('hidden');
-                dot.classList.add('hidden'); // Clear ping
+                dot.classList.add('hidden'); 
             } else {
                 sb.classList.add('translate-x-full');
                 ov.classList.add('hidden');
@@ -206,10 +207,10 @@
         }
 
         async function fetchNotice() {
-            const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).single();
+            const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).maybeSingle();
             if (!error && data) {
                 document.getElementById('sidebar-notice-text').innerText = data.content;
-                document.getElementById('notice-time').innerText = new Date(data.updated_at).toLocaleDateString();
+                document.getElementById('notice-time').innerText = "Posted: " + new Date(data.updated_at).toLocaleDateString();
                 document.getElementById('notice-dot').classList.remove('hidden');
                 if(isAdmin) document.getElementById('notice-input').value = data.content;
             }
@@ -217,9 +218,19 @@
 
         async function updateNotice() {
             const newContent = document.getElementById('notice-input').value;
-            if(!newContent) return alert("Notice cannot be empty!");
-            const { error } = await supabaseClient.from('notices').update({ content: newContent, updated_at: new Date() }).eq('id', 1);
-            if(!error) { alert("📢 Broadcast Sent!"); fetchNotice(); }
+            if(!newContent) return alert("Type something to broadcast!");
+            
+            // USE UPSERT: This creates the row if it's missing or updates it if it exists.
+            const { error } = await supabaseClient
+                .from('notices')
+                .upsert({ id: 1, content: newContent, updated_at: new Date() });
+                
+            if(!error) { 
+                alert("📢 Broadcast Published!"); 
+                fetchNotice(); 
+            } else {
+                alert("Cloud Error: " + error.message);
+            }
         }
 
         async function addVideo() {
@@ -230,7 +241,7 @@
             let videoId = urlInput.includes("v=") ? urlInput.split("v=")[1].split("&")[0] : urlInput.split("/").pop();
             const { error } = await supabaseClient.from('videos').insert([{ title, category: cat, url: videoId }]);
             if (!error) { 
-                alert("🚀 Published to Cloud!"); 
+                alert("🚀 Published!"); 
                 document.getElementById('v-title').value = ""; 
                 document.getElementById('v-url').value = ""; 
                 fetchVideos(); 
@@ -260,7 +271,7 @@
             const filtered = videos.filter(v => v.category === currentTab && v.title.toLowerCase().includes(searchTerm));
             
             if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-32 text-gray-700 italic border-4 border-dashed border-white/5 rounded-[3rem]">No lectures found in this section.</div>`;
+                grid.innerHTML = `<div class="col-span-full text-center py-32 text-gray-700 italic border-4 border-dashed border-white/5 rounded-[3rem]">No lectures found.</div>`;
                 return;
             }
 
