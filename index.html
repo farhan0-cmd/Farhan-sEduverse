@@ -42,7 +42,6 @@
         <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-40 backdrop-blur-md">
             <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
-                
                 <button onclick="toggleNoticeSidebar()" class="relative p-2 bg-white/5 rounded-full hover:bg-rose-600/20 transition-all group">
                     <span id="notice-dot" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping hidden"></span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-rose-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,7 +49,6 @@
                     </svg>
                 </button>
             </div>
-
             <div class="flex items-center gap-4">
                 <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold tracking-widest uppercase">Operator</span>
                 <button onclick="logout()" class="bg-white/5 hover:bg-rose-600 px-5 py-2 rounded-xl text-xs transition-all font-bold">Logout</button>
@@ -58,7 +56,6 @@
         </nav>
 
         <div class="max-w-7xl mx-auto p-6">
-            
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2.5rem] p-10">
                 <div class="flex justify-between items-start mb-8">
                     <div>
@@ -97,10 +94,8 @@
                     <button onclick="setTab('HSC')" id="tab-HSC" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">HSC</button>
                     <button onclick="setTab('Admission')" id="tab-Admission" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">Admission</button>
                 </div>
-                
                 <div class="relative w-full md:w-96">
-                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search lectures..." 
-                        class="w-full bg-[#111] border border-white/5 rounded-[1.8rem] p-5 pl-14 text-sm outline-none focus:border-rose-600/50 transition-all shadow-xl">
+                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search lectures..." class="w-full bg-[#111] border border-white/5 rounded-[1.8rem] p-5 pl-14 text-sm outline-none focus:border-rose-600/50 transition-all shadow-xl">
                     <span class="absolute left-6 top-5 text-gray-600">🔍</span>
                 </div>
             </div>
@@ -114,7 +109,6 @@
             <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
             <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-rose-600 transition-all">✕</button>
         </div>
-        
         <div id="sidebar-content" class="space-y-6">
             <div class="bg-rose-600/5 border border-rose-600/20 p-6 rounded-[2rem] shadow-inner">
                 <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Admin Announcement</p>
@@ -207,11 +201,18 @@
         }
 
         async function fetchNotice() {
+            // Updated to use .single() for precision
             const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).maybeSingle();
             if (!error && data) {
                 document.getElementById('sidebar-notice-text').innerText = data.content;
-                document.getElementById('notice-time').innerText = "Posted: " + new Date(data.updated_at).toLocaleDateString();
-                document.getElementById('notice-dot').classList.remove('hidden');
+                const dateObj = new Date(data.updated_at);
+                document.getElementById('notice-time').innerText = "Posted: " + dateObj.toLocaleDateString();
+                
+                // Only show notification dot if sidebar is hidden
+                if(document.getElementById('notice-sidebar').classList.contains('translate-x-full')) {
+                    document.getElementById('notice-dot').classList.remove('hidden');
+                }
+                
                 if(isAdmin) document.getElementById('notice-input').value = data.content;
             }
         }
@@ -220,15 +221,20 @@
             const newContent = document.getElementById('notice-input').value;
             if(!newContent) return alert("Type something to broadcast!");
             
-            // USE UPSERT: This creates the row if it's missing or updates it if it exists.
+            // Fixed .update() targeting the specific row we created in SQL
             const { error } = await supabaseClient
                 .from('notices')
-                .upsert({ id: 1, content: newContent, updated_at: new Date() });
+                .update({ 
+                    content: newContent, 
+                    updated_at: new Date().toISOString() 
+                })
+                .eq('id', 1);
                 
             if(!error) { 
                 alert("📢 Broadcast Published!"); 
                 fetchNotice(); 
             } else {
+                console.error(error);
                 alert("Cloud Error: " + error.message);
             }
         }
