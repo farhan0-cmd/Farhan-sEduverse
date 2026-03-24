@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="theme-color" content="#080808">
-
-<link rel="icon" href="https://fav.farm/🎓" />
-
-<link rel="apple-touch-icon" href="https://fav.farm/🎓">
-
-<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Farhan's%20Eduverse%22,%22short_name%22:%22Eduverse%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#080808%22,%22theme_color%22:%22#e11d48%22,%22icons%22:[{%22src%22:%22https://fav.farm/🎓%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080808">
     <title>Farhan's Eduverse</title>
+    
+    <link rel="icon" href="https://fav.farm/🎓" />
+    <link rel="apple-touch-icon" href="https://fav.farm/🎓">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Farhan's%20Eduverse%22,%22short_name%22:%22Eduverse%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22#080808%22,%22theme_color%22:%22#e11d48%22,%22icons%22:[{%22src%22:%22https://fav.farm/🎓%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #080808; color: white; font-family: 'Inter', sans-serif; }
+        body { background-color: #080808; color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
+        .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body>
 
     <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl text-center">
-            <h1 class="text-4xl font-black mb-2 tracking-tighter">FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span></h1>
+            <h1 class="text-4xl font-black mb-2 tracking-tighter italic">FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span></h1>
             <p class="text-gray-500 mb-10 text-sm tracking-widest uppercase font-bold">Mentor Portal</p>
             <div class="space-y-4 text-left">
                 <input type="tel" id="login-phone" placeholder="Phone Number" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600">
@@ -36,69 +38,94 @@
     </div>
 
     <div id="main-app" class="hidden min-h-screen">
-        <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-50 backdrop-blur-md">
-            <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
+        <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-40 backdrop-blur-md">
             <div class="flex items-center gap-4">
-                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold">OPERATOR MODE</span>
-                <button id="notify-btn" onclick="toggleNotifications()" class="text-[10px] text-gray-500 hover:text-white transition-all px-3 font-bold">🔕 Notifications Off</button>
-                <button onclick="logout()" class="bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl text-xs transition-all font-bold">Logout</button>
+                <h1 class="text-2xl font-black tracking-tighter">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
+                
+                <button onclick="toggleNoticeSidebar()" class="relative p-2 bg-white/5 rounded-full hover:bg-rose-600/20 transition-all group">
+                    <span id="notice-dot" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping hidden"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-rose-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <span id="admin-tag" class="hidden bg-rose-600/10 text-rose-500 text-[10px] px-3 py-1 rounded-full border border-rose-500/20 font-bold tracking-widest">OPERATOR</span>
+                <button onclick="logout()" class="bg-white/5 hover:bg-rose-600 px-5 py-2 rounded-xl text-xs transition-all font-bold">Logout</button>
             </div>
         </nav>
 
         <div class="max-w-7xl mx-auto p-6">
-            <div id="notice-board" class="mb-10 bg-rose-600/10 border border-rose-600/20 p-6 rounded-[2rem] flex items-center gap-4 hidden">
-    <span class="text-2xl">📢</span>
-    <div>
-        <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-1">Latest Update</p>
-        <p id="notice-text" class="text-white font-medium italic">Loading latest notice...</p>
-    </div>
-</div>
-            <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2rem] p-8">
-<div class="flex justify-between items-start mb-6">
-    <div>
-        <h2 class="text-xl font-bold text-rose-500">🚀 Upload to Cloud</h2>
-        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Operator Dashboard</p>
-    </div>
-    <div class="bg-[#1a1a1a] border border-white/5 px-6 py-3 rounded-2xl text-right shadow-xl">
-        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Total Students</span>
-        <span id="user-count" class="text-3xl font-black text-white">0</span>
-    </div>
-</div>                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
-                    <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
-                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none">
+            
+            <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2.5rem] p-10">
+                <div class="flex justify-between items-start mb-8">
+                    <div>
+                        <h2 class="text-2xl font-black text-rose-500 italic">OPERATOR CONTROL</h2>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Manage Cloud Database</p>
+                    </div>
+                    <div class="bg-[#050505] border border-white/5 px-8 py-4 rounded-3xl text-right shadow-2xl">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Live Student Count</span>
+                        <span id="user-count" class="text-4xl font-black text-white">0</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                    <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none cursor-pointer">
                         <option value="SSC">SSC</option>
                         <option value="HSC">HSC</option>
                         <option value="Admission">Admission</option>
                     </select>
-                    <button onclick="addVideo()" class="bg-rose-600 text-white font-bold rounded-xl p-4 transition-all">Publish Now</button>
+                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl p-4 transition-all shadow-lg shadow-rose-900/20">Publish Video</button>
                 </div>
-                <div class="mt-10 border-t border-white/5 pt-8">
-    <h2 class="text-xl font-bold mb-4 text-rose-500">📢 Broadcast Notice</h2>
-    <div class="flex gap-4">
-        <input id="notice-input" placeholder="Type a new notice for students..." class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-xl text-white outline-none focus:border-rose-600">
-        <button onclick="updateNotice()" class="bg-white text-black font-bold px-8 rounded-xl hover:bg-rose-600 hover:text-white transition-all">Update Board</button>
-    </div>
-</div>
+
+                <div class="pt-8 border-t border-white/5">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">📢 Broadcast Notice</h3>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="notice-input" placeholder="What's happening today?" class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                        <button onclick="updateNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">Update Notice</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
-                <div class="flex gap-4 overflow-x-auto pb-2 w-full md:w-auto">
-                    <button onclick="setTab('SSC')" id="tab-SSC" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20 transition-all">SSC</button>
-                    <button onclick="setTab('HSC')" id="tab-HSC" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 transition-all">HSC</button>
-                    <button onclick="setTab('Admission')" id="tab-Admission" class="tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 transition-all">Admission</button>
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-16">
+                <div class="flex gap-4 p-1.5 bg-[#111] rounded-[2rem] w-full md:w-auto border border-white/5">
+                    <button onclick="setTab('SSC')" id="tab-SSC" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">SSC</button>
+                    <button onclick="setTab('HSC')" id="tab-HSC" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">HSC</button>
+                    <button onclick="setTab('Admission')" id="tab-Admission" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">Admission</button>
                 </div>
                 
-                <div class="relative w-full md:w-80">
-                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search lectures..." 
-                        class="w-full bg-[#111] border border-white/10 rounded-2xl p-4 pl-12 text-sm outline-none focus:border-rose-600 transition-all">
-                    <span class="absolute left-4 top-4 text-gray-600">🔍</span>
+                <div class="relative w-full md:w-96">
+                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search through lectures..." 
+                        class="w-full bg-[#111] border border-white/5 rounded-[1.8rem] p-5 pl-14 text-sm outline-none focus:border-rose-600/50 transition-all shadow-xl">
+                    <span class="absolute left-6 top-5 text-gray-600">🔍</span>
                 </div>
             </div>
 
-            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
+            <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12"></div>
         </div>
     </div>
+
+    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8">
+        <div class="flex justify-between items-center mb-10">
+            <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
+            <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-rose-600 transition-all">✕</button>
+        </div>
+        
+        <div id="sidebar-content" class="space-y-6">
+            <div class="bg-rose-600/5 border border-rose-600/20 p-6 rounded-[2rem]">
+                <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Announcement from Farhan</p>
+                <p id="sidebar-notice-text" class="text-gray-200 leading-relaxed italic text-sm">Loading latest updates...</p>
+                <div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
+                    <span class="text-[9px] text-gray-600 font-bold uppercase" id="notice-time"></span>
+                    <span class="px-2 py-1 bg-rose-600/10 text-rose-500 text-[8px] font-bold rounded">LIVE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="sidebar-overlay" onclick="toggleNoticeSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-40"></div>
 
     <script>
         const SB_URL = "https://zfvldodcinjjpjcfgqdt.supabase.co"; 
@@ -111,7 +138,6 @@
         let isAdmin = false;
         let currentTab = 'SSC';
         let videos = [];
-        let notificationsEnabled = localStorage.getItem('eduverse_notifications') === 'true';
 
         window.onload = async function() {
             const savedUser = localStorage.getItem('eduverse_session');
@@ -120,7 +146,7 @@
                 isAdmin = userData.isAdmin;
                 showApp();
             }
-            updateNotifyUI();
+            setTab('SSC'); 
             await fetchVideos();
         };
 
@@ -130,74 +156,100 @@
         }
 
         async function handleLogin(isOp) {
-    const phone = document.getElementById('login-phone').value;
-    const pass = document.getElementById('login-pass').value;
-    if(!phone) return alert("Please enter credentials");
+            const phone = document.getElementById('login-phone').value;
+            const pass = document.getElementById('login-pass').value;
+            if(!phone) return alert("Enter credentials, mentor!");
 
-    if(isOp) {
-        if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
-        else { return alert("❌ Unauthorized!"); }
-    } else {
-        isAdmin = false;
-        // This line saves the student to your "profiles" table
-        await supabaseClient.from('profiles').upsert({ phone: phone, last_login: new Date() }, { onConflict: 'phone' });
-    }
+            if(isOp) {
+                if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
+                else { return alert("❌ Unauthorized Access!"); }
+            } else {
+                isAdmin = false;
+                await supabaseClient.from('profiles').upsert({ phone: phone, last_login: new Date() }, { onConflict: 'phone' });
+            }
 
-    localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
-    showApp();
-}
+            localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
+            showApp();
+        }
 
         function showApp() {
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
-    fetchNotice();
-    
-    if(isAdmin) { 
-        document.getElementById('admin-panel').classList.remove('hidden'); 
-        document.getElementById('admin-tag').classList.remove('hidden');
-        fetchUserCount(); // This should be INSIDE the { } brackets
-    } // <--- The bracket must be HERE
-    
-    renderVideos();
-}
-    
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            fetchNotice();
+            
+            if(isAdmin) { 
+                document.getElementById('admin-panel').classList.remove('hidden'); 
+                document.getElementById('admin-tag').classList.remove('hidden');
+                fetchUserCount();
+            }
+            renderVideos();
+        }
 
-        function logout() { localStorage.removeItem('eduverse_session'); location.reload(); }
-async function fetchUserCount() {
-    if (!isAdmin) return;
-    
-    // This counts how many rows are in your "profiles" table
-    const { count, error } = await supabaseClient
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+        function toggleNoticeSidebar() {
+            const sb = document.getElementById('notice-sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            const dot = document.getElementById('notice-dot');
+            if(sb.classList.contains('translate-x-full')) {
+                sb.classList.remove('translate-x-full');
+                ov.classList.remove('hidden');
+                dot.classList.add('hidden'); // Clear ping
+            } else {
+                sb.classList.add('translate-x-full');
+                ov.classList.add('hidden');
+            }
+        }
 
-    if (!error) {
-        document.getElementById('user-count').innerText = count;
-    } else {
-        console.error("Counter Error:", error.message);
-    }
-}
+        async function fetchUserCount() {
+            if (!isAdmin) return;
+            const { count, error } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
+            if (!error) document.getElementById('user-count').innerText = count;
+        }
+
+        async function fetchNotice() {
+            const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).single();
+            if (!error && data) {
+                document.getElementById('sidebar-notice-text').innerText = data.content;
+                document.getElementById('notice-time').innerText = new Date(data.updated_at).toLocaleDateString();
+                document.getElementById('notice-dot').classList.remove('hidden');
+                if(isAdmin) document.getElementById('notice-input').value = data.content;
+            }
+        }
+
+        async function updateNotice() {
+            const newContent = document.getElementById('notice-input').value;
+            if(!newContent) return alert("Notice cannot be empty!");
+            const { error } = await supabaseClient.from('notices').update({ content: newContent, updated_at: new Date() }).eq('id', 1);
+            if(!error) { alert("📢 Broadcast Sent!"); fetchNotice(); }
+        }
+
         async function addVideo() {
             const title = document.getElementById('v-title').value;
             const urlInput = document.getElementById('v-url').value;
             const cat = document.getElementById('v-cat').value;
-            if(!title || !urlInput) return alert("Fill all fields");
+            if(!title || !urlInput) return alert("Fill all details!");
             let videoId = urlInput.includes("v=") ? urlInput.split("v=")[1].split("&")[0] : urlInput.split("/").pop();
             const { error } = await supabaseClient.from('videos').insert([{ title, category: cat, url: videoId }]);
-            if (!error) { alert("🚀 Published!"); document.getElementById('v-title').value = ""; document.getElementById('v-url').value = ""; fetchVideos(); }
+            if (!error) { 
+                alert("🚀 Published to Cloud!"); 
+                document.getElementById('v-title').value = ""; 
+                document.getElementById('v-url').value = ""; 
+                fetchVideos(); 
+            }
         }
 
         async function deleteVideo(id) {
-            if(!confirm("Delete from Cloud?")) return;
+            if(!confirm("Erase from Cloud?")) return;
             const { error } = await supabaseClient.from('videos').delete().eq('id', id);
             if(!error) fetchVideos();
         }
 
         function setTab(t) {
             currentTab = t;
-            document.querySelectorAll('.tab-btn').forEach(btn => { btn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-[#121212] text-gray-500 hover:text-white transition-all"; });
+            document.querySelectorAll('.tab-btn').forEach(btn => { 
+                btn.className = "tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm bg-[#121212] text-gray-500 hover:text-white transition-all"; 
+            });
             const activeBtn = document.getElementById('tab-' + t);
-            activeBtn.className = "tab-btn px-10 py-3 rounded-2xl font-bold bg-rose-600 text-white shadow-lg shadow-rose-900/20";
+            activeBtn.className = "tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm bg-rose-600 text-white shadow-xl shadow-rose-900/30";
             renderVideos();
         }
 
@@ -205,66 +257,34 @@ async function fetchUserCount() {
             const grid = document.getElementById('video-grid');
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
             grid.innerHTML = '';
-            
             const filtered = videos.filter(v => v.category === currentTab && v.title.toLowerCase().includes(searchTerm));
             
             if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-700 italic border-2 border-dashed border-white/5 rounded-[2rem]">No matching lessons found.</div>`;
+                grid.innerHTML = `<div class="col-span-full text-center py-32 text-gray-700 italic border-4 border-dashed border-white/5 rounded-[3rem]">No lectures found in this section.</div>`;
                 return;
             }
 
             filtered.forEach(v => {
                 grid.innerHTML += `
                     <div class="group">
-                        <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl group-hover:border-rose-600/50 transition-all">
+                        <div class="aspect-video bg-black rounded-[2.5rem] overflow-hidden border-2 border-white/5 shadow-2xl group-hover:border-rose-600 transition-all duration-500">
                             <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
                         </div>
-                        <div class="mt-6 flex justify-between items-start px-2">
+                        <div class="mt-8 flex justify-between items-start px-4">
                             <div>
-                                <h3 class="text-lg font-bold group-hover:text-rose-500 transition-colors">${v.title}</h3>
-                                <p class="text-[10px] text-gray-600 uppercase font-bold tracking-tighter">${v.category} Section</p>
+                                <h3 class="text-xl font-black group-hover:text-rose-500 transition-colors tracking-tight leading-tight">${v.title}</h3>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
+                                    <p class="text-[10px] text-gray-600 uppercase font-black tracking-widest">${v.category} MODULE</p>
+                                </div>
                             </div>
-                            ${isAdmin ? `<button onclick="deleteVideo(${v.id})" class="text-gray-800 hover:text-rose-600 p-2 font-bold">✕</button>` : ''}
+                            ${isAdmin ? `<button onclick="deleteVideo(${v.id})" class="bg-white/5 hover:bg-rose-600 p-3 rounded-full transition-all">✕</button>` : ''}
                         </div>
                     </div>`;
             });
         }
 
-        function toggleNotifications() {
-            notificationsEnabled = !notificationsEnabled;
-            localStorage.setItem('eduverse_notifications', notificationsEnabled);
-            updateNotifyUI();
-            alert(notificationsEnabled ? "🔔 Notifications Enabled" : "🔕 Notifications Disabled");
-        }
-
-        function updateNotifyUI() {
-            const btn = document.getElementById('notify-btn');
-            btn.innerHTML = notificationsEnabled ? "🔔 Notifications On" : "🔕 Notifications Off";
-            notificationsEnabled ? btn.classList.add('text-rose-500') : btn.classList.remove('text-rose-500');
-        }
-        async function fetchNotice() {
-    const { data, error } = await supabaseClient.from('notices').select('content').eq('id', 1).single();
-    if (!error && data) {
-        document.getElementById('notice-board').classList.remove('hidden');
-        document.getElementById('notice-text').innerText = data.content;
-        if(isAdmin) document.getElementById('notice-input').value = data.content;
-    }
-}
-
-async function updateNotice() {
-    const newContent = document.getElementById('notice-input').value;
-    if(!newContent) return;
-    
-    const { error } = await supabaseClient
-        .from('notices')
-        .update({ content: newContent, updated_at: new Date() })
-        .eq('id', 1);
-        
-    if(!error) {
-        alert("📢 Notice Updated!");
-        fetchNotice();
-    }
-}
+        function logout() { localStorage.removeItem('eduverse_session'); location.reload(); }
     </script>
 </body>
 </html>
