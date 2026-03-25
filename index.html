@@ -269,17 +269,34 @@
                             <p class="font-bold">${e.paid_courses?.title}</p>
                             <p class="text-gray-500">${e.student_phone} | Trx: ${e.trx_id}</p>
                         </div>
-                        <button onclick="verifyPay('${e.id}')" class="bg-green-600 px-3 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                        // Inside fetchEnrollments() mapping:
+                        <div class="flex gap-2">
+                            <button onclick="verifyPay('${e.id}', 'approved')" class="bg-green-600 px-3 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                            <button onclick="verifyPay('${e.id}', 'rejected')" class="bg-rose-600 px-3 py-1 rounded-lg text-[10px] font-bold">Reject</button>
+                        </div>
                     </div>
                 `).join('') || '<p class="text-xs text-gray-500">No pending payments</p>';
             }
         }
 
-        async function verifyPay(id) { 
-            await supabaseClient.from('course_access').update({ status: 'approved' }).eq('id', id); 
-            fetchEnrollments(); 
-            fetchCourses();
-        }
+async function verifyPay(id, newStatus) { 
+    // 1. Tell Supabase to find the row with this ID and change the status
+    const { error } = await supabaseClient
+        .from('course_access')
+        .update({ status: newStatus }) // This changes it to 'approved' or 'rejected'
+        .eq('id', id); 
+
+    if(!error) {
+        // 2. Alert you so you know it worked
+        alert(`Enrollment has been ${newStatus}!`);
+        
+        // 3. Refresh the lists so the student disappears from the "Pending" list
+        fetchEnrollments(); 
+        fetchCourses();
+    } else {
+        console.error("Error updating payment:", error);
+    }
+}
 
         // Fix: Highlight Logic
         function setTab(t) { 
