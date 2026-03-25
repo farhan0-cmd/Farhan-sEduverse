@@ -196,22 +196,63 @@
         }
 
         async function fetchCourses() {
-            const { data: courses } = await supabaseClient.from('paid_courses').select('*');
-            const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
-            const unlocked = access?.map(a => a.course_id) || [];
+    const { data: courses } = await supabaseClient.from('paid_courses').select('*');
+    const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
+    const unlocked = access?.map(a => a.course_id) || [];
 
-            document.getElementById('course-grid').innerHTML = courses?.map(c => `
-                <div class="bg-[#111] rounded-3xl overflow-hidden border border-white/5 p-4 relative">
-                    ${isAdmin ? `<button onclick="deleteCourse(${c.id})" class="absolute top-6 right-6 bg-rose-600 text-white w-8 h-8 rounded-full z-10 flex items-center justify-center">✕</button>` : ''}
-                    <img src="${c.thumbnail_url}" class="w-full h-40 object-cover rounded-2xl mb-4">
-                    <h3 class="font-bold text-lg mb-2">${c.title}</h3>
-                    <div class="flex justify-between items-center">
-                        <span class="text-rose-500 font-bold">৳${c.price}</span>
-                        ${unlocked.includes(c.id) ? `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-green-600 px-4 py-2 rounded-xl text-xs">Enter Class</button>` : `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs">Buy Now</button>`}
-                    </div>
+    document.getElementById('course-grid').innerHTML = courses?.map(c => `
+        <div class="bg-[#111] rounded-3xl overflow-hidden border border-white/5 p-4 relative">
+            ${isAdmin ? `
+                <div class="absolute top-4 right-4 flex gap-2 z-20">
+                    <button onclick="editCourse(${c.id}, '${c.title}', '${c.price}', '${c.thumbnail_url}', '${c.video_playlist_link}')" class="bg-blue-600 text-white p-2 rounded-lg text-[10px] font-bold">EDIT</button>
+                    <button onclick="deleteCourse(${c.id})" class="bg-rose-600 text-white p-2 rounded-lg text-[10px] font-bold">✕</button>
                 </div>
-            `).join('');
+            ` : ''}
+            
+            <img src="${c.thumbnail_url}" class="w-full h-40 object-cover rounded-2xl mb-4">
+            <h3 class="font-bold text-lg mb-2">${c.title}</h3>
+            
+            <div class="flex justify-between items-center">
+                <span class="text-rose-500 font-bold">৳${c.price}</span>
+                
+                ${isAdmin ? 
+                    `<button class="bg-gray-700 px-4 py-2 rounded-xl text-xs cursor-default">Admin Mode</button>` : 
+                    (unlocked.includes(c.id) ? 
+                        `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-green-600 px-4 py-2 rounded-xl text-xs">Enter Class</button>` : 
+                        `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs">Buy Now</button>`)
+                }
+            </div>
+        </div>
+    `).join('');
+}
+
+// NEW: Function to handle Editing
+async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
+    const newTitle = prompt("Edit Course Title:", oldTitle);
+    const newPrice = prompt("Edit Price:", oldPrice);
+    const newThumb = prompt("Edit Thumbnail URL:", oldThumb);
+    const newLink = prompt("Edit Playlist ID (or Link):", oldLink);
+
+    if (newTitle && newPrice && newThumb && newLink) {
+        const cleanLink = getListId(newLink); // Automatically fixes full links to IDs
+        const { error } = await supabaseClient
+            .from('paid_courses')
+            .update({ 
+                title: newTitle, 
+                price: newPrice, 
+                thumbnail_url: newThumb, 
+                video_playlist_link: cleanLink 
+            })
+            .eq('id', id);
+
+        if(!error) {
+            alert("Course Updated!");
+            fetchCourses();
+        } else {
+            alert("Error updating course.");
         }
+    }
+}
 
         async function publishCourse() {
             const title = document.getElementById('c-title').value, price = document.getElementById('c-price').value;
