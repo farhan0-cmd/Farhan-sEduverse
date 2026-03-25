@@ -9,7 +9,6 @@
     <style>
         body { background-color: #080808; color: white; font-family: sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        /* Tab Highlight Fixes */
         .tab-active { background-color: #e11d48 !important; color: white !important; }
         .tab-inactive { background-color: #1a1a1a !important; color: #9ca3af !important; }
         #notice-sidebar { transition: transform 0.3s ease-in-out; z-index: 100; }
@@ -88,30 +87,26 @@
 
             <div id="paid-view" class="hidden">
                 <div id="classroom-ui" class="hidden">
-    <button onclick="closeClassroom()" class="text-rose-500 mb-6 font-bold flex items-center gap-2">← Back to Academy</button>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-2">
-            <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                <iframe id="classroom-player" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-            </div>
-            <h2 id="now-playing-title" class="text-xl font-bold mt-4 text-rose-500">Select a Lesson</h2>
-        </div>
-
-        <div class="bg-[#111] rounded-3xl p-6 border border-white/5 h-[500px] overflow-y-auto">
-            <h3 class="font-bold mb-4 border-b border-white/10 pb-2 text-gray-400">Course Lessons</h3>
-            <div id="lesson-list" class="space-y-3">
+                    <button onclick="closeClassroom()" class="text-rose-500 mb-6 font-bold flex items-center gap-2">← Back to Academy</button>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                                <iframe id="classroom-player" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                            <h2 id="now-playing-title" class="text-xl font-bold mt-4 text-rose-500">Select a Lesson</h2>
+                        </div>
+                        <div class="bg-[#111] rounded-3xl p-6 border border-white/5 h-[500px] overflow-y-auto">
+                            <h3 class="font-bold mb-4 border-b border-white/10 pb-2 text-gray-400">Course Lessons</h3>
+                            <div id="lesson-list" class="space-y-3"></div>
+                            <div id="admin-lesson-controls" class="hidden mt-6 pt-6 border-t border-white/10">
+                                <input id="new-lesson-title" placeholder="Lesson Title" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
+                                <input id="new-lesson-vid" placeholder="YouTube Video ID" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
+                                <button onclick="addLessonToCourse()" class="w-full bg-blue-600 text-[10px] font-bold py-2 rounded">ADD LESSON</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            
-            <div id="admin-lesson-controls" class="hidden mt-6 pt-6 border-t border-white/10">
-                <input id="new-lesson-title" placeholder="Lesson Title" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
-                <input id="new-lesson-vid" placeholder="YouTube Video ID" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
-                <button onclick="addLessonToCourse()" class="w-full bg-blue-600 text-[10px] font-bold py-2 rounded">ADD LESSON</button>
-            </div>
-        </div>
-    </div>
-</div>
-                <div id="course-catalog">
+                <div id="course-catalog-container">
                     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
                         <button onclick="setTab('SSC')" id="tab-paid-SSC" class="tab-active px-6 py-2 rounded-full font-bold transition">SSC</button>
                         <button onclick="setTab('HSC')" id="tab-paid-HSC" class="tab-inactive px-6 py-2 rounded-full font-bold transition">HSC</button>
@@ -185,7 +180,7 @@
             document.getElementById('main-app').classList.remove('hidden');
             if(isAdmin) {
                 document.getElementById('admin-panel').classList.remove('hidden');
-                if(isAdmin) document.getElementById('admin-lesson-controls').classList.remove('hidden');
+                document.getElementById('admin-lesson-controls').classList.remove('hidden');
                 fetchEnrollments();
             }
         }
@@ -224,9 +219,9 @@
         async function fetchCourses() {
             const { data: courses } = await supabaseClient.from('paid_courses').select('*');
             const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
-            const unlocked = access?.map(a => a.course_id) || [];
-
-            // Update: Filtering courses by category to match your screenshot layout
+            
+            // Fix: Normalize IDs to ensure match
+            const unlocked = access?.map(a => Number(a.course_id)) || [];
             const filtered = courses?.filter(c => c.category === currentCategory) || [];
 
             document.getElementById('course-grid').innerHTML = filtered.map(c => `
@@ -237,17 +232,14 @@
                             <button onclick="deleteCourse(${c.id})" class="bg-rose-600 text-white p-2 rounded-lg text-[10px] font-bold">✕</button>
                         </div>
                     ` : ''}
-                    
                     <img src="${c.thumbnail_url}" class="w-full aspect-video object-cover">
-                    
                     <div class="p-4">
                         <h3 class="font-bold text-sm mb-4 line-clamp-2">${c.title}</h3>
                         <div class="flex justify-between items-center">
                             <span class="text-rose-500 font-bold">৳${c.price}</span>
-                            
                             ${isAdmin ? 
                                 `<button onclick="enterClass(${c.id})" class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition">Preview</button>` : 
-                                (unlocked.includes(c.id) ? 
+                                (unlocked.includes(Number(c.id)) ? 
                                     `<button onclick="enterClass(${c.id})" class="bg-green-600 px-4 py-2 rounded-xl text-xs font-bold">Enter Class</button>` : 
                                     `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs font-bold">Buy Now</button>`)
                             }
@@ -262,14 +254,9 @@
             const newPrice = prompt("Edit Price:", oldPrice);
             const newThumb = prompt("Edit Thumbnail URL:", oldThumb);
             const newLink = prompt("Edit Playlist ID (or Link):", oldLink);
-
             if (newTitle && newPrice && newThumb && newLink) {
                 const cleanLink = getListId(newLink);
-                const { error } = await supabaseClient
-                    .from('paid_courses')
-                    .update({ title: newTitle, price: newPrice, thumbnail_url: newThumb, video_playlist_link: cleanLink })
-                    .eq('id', id);
-
+                const { error } = await supabaseClient.from('paid_courses').update({ title: newTitle, price: newPrice, thumbnail_url: newThumb, video_playlist_link: cleanLink }).eq('id', id);
                 if(!error) { alert("Course Updated!"); fetchCourses(); }
             }
         }
@@ -286,7 +273,7 @@
         let currentOpenCourseId = null;
         async function enterClass(courseId) {
             currentOpenCourseId = courseId;
-            document.getElementById('course-catalog').classList.add('hidden');
+            document.getElementById('course-catalog-container').classList.add('hidden');
             document.getElementById('classroom-ui').classList.remove('hidden');
             fetchLessons(courseId);
         }
@@ -327,7 +314,7 @@
         }
 
         function closeClassroom() {
-            document.getElementById('course-catalog').classList.remove('hidden');
+            document.getElementById('course-catalog-container').classList.remove('hidden');
             document.getElementById('classroom-ui').classList.add('hidden');
             document.getElementById('classroom-player').src = "";
         }
@@ -384,9 +371,7 @@
         function setTab(t) { 
             currentCategory = t; 
             renderVideos(); 
-            fetchCourses(); // Sync paid courses with the tab
-            
-            // Fix: Highlighting all tab buttons (Free and Paid)
+            fetchCourses();
             document.querySelectorAll('[id^="tab-"]').forEach(btn => {
                 if(btn.id === `tab-${t}` || btn.id === `tab-paid-${t}`) {
                     btn.classList.replace('tab-inactive', 'tab-active');
