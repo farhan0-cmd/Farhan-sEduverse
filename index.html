@@ -12,7 +12,7 @@
         /* Tab Highlight Fixes */
         .tab-active { background-color: #e11d48 !important; color: white !important; }
         .tab-inactive { background-color: #1a1a1a !important; color: #9ca3af !important; }
-        #notice-sidebar { transition: transform 0.3s ease-in-out; }
+        #notice-sidebar { transition: transform 0.3s ease-in-out; z-index: 100; }
     </style>
 </head>
 <body>
@@ -94,7 +94,11 @@
                     </div>
                 </div>
                 <div id="course-catalog">
-                    <h2 class="text-2xl font-bold mb-6 italic">Premium Academy</h2>
+                    <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
+                        <button onclick="setTab('SSC')" id="tab-paid-SSC" class="tab-active px-6 py-2 rounded-full font-bold transition">SSC</button>
+                        <button onclick="setTab('HSC')" id="tab-paid-HSC" class="tab-inactive px-6 py-2 rounded-full font-bold transition">HSC</button>
+                        <button onclick="setTab('Admission')" id="tab-paid-Admission" class="tab-inactive px-6 py-2 rounded-full font-bold transition">Admission</button>
+                    </div>
                     <div id="course-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
                 </div>
             </div>
@@ -111,8 +115,11 @@
         </div>
     </div>
 
-    <div id="notice-sidebar" class="fixed top-0 right-0 h-full w-80 bg-[#0a0a0a] border-l border-white/10 z-[60] translate-x-full p-6">
-        <div class="flex justify-between items-center mb-8"><h3 class="font-bold text-xl">Notices</h3><button onclick="toggleNoticeSidebar()">✕</button></div>
+    <div id="notice-sidebar" class="fixed top-0 right-0 h-full w-80 bg-[#0a0a0a] border-l border-white/10 translate-x-full p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="font-bold text-xl text-rose-500">Notices</h3>
+            <button onclick="toggleNoticeSidebar()" class="text-white text-xl">✕</button>
+        </div>
         <div id="notice-content" class="space-y-4"></div>
     </div>
 
@@ -196,68 +203,62 @@
         }
 
         async function fetchCourses() {
-    const { data: courses } = await supabaseClient.from('paid_courses').select('*');
-    const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
-    const unlocked = access?.map(a => a.course_id) || [];
+            const { data: courses } = await supabaseClient.from('paid_courses').select('*');
+            const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
+            const unlocked = access?.map(a => a.course_id) || [];
 
-    document.getElementById('course-grid').innerHTML = courses?.map(c => `
-        <div class="bg-[#111] rounded-3xl overflow-hidden border border-white/5 p-4 relative">
-            ${isAdmin ? `
-                <div class="absolute top-4 right-4 flex gap-2 z-20">
-                    <button onclick="editCourse(${c.id}, '${c.title}', '${c.price}', '${c.thumbnail_url}', '${c.video_playlist_link}')" class="bg-blue-600 text-white p-2 rounded-lg text-[10px] font-bold">EDIT</button>
-                    <button onclick="deleteCourse(${c.id})" class="bg-rose-600 text-white p-2 rounded-lg text-[10px] font-bold">✕</button>
+            // Update: Filtering courses by category to match your screenshot layout
+            const filtered = courses?.filter(c => c.category === currentCategory) || [];
+
+            document.getElementById('course-grid').innerHTML = filtered.map(c => `
+                <div class="bg-[#111] rounded-2xl overflow-hidden border border-white/5 shadow-lg relative">
+                    ${isAdmin ? `
+                        <div class="absolute top-2 right-2 flex gap-2 z-20">
+                            <button onclick="editCourse(${c.id}, '${c.title}', '${c.price}', '${c.thumbnail_url}', '${c.video_playlist_link}')" class="bg-blue-600 text-white p-2 rounded-lg text-[10px] font-bold">EDIT</button>
+                            <button onclick="deleteCourse(${c.id})" class="bg-rose-600 text-white p-2 rounded-lg text-[10px] font-bold">✕</button>
+                        </div>
+                    ` : ''}
+                    
+                    <img src="${c.thumbnail_url}" class="w-full aspect-video object-cover">
+                    
+                    <div class="p-4">
+                        <h3 class="font-bold text-sm mb-4 line-clamp-2">${c.title}</h3>
+                        <div class="flex justify-between items-center">
+                            <span class="text-rose-500 font-bold">৳${c.price}</span>
+                            
+                            ${isAdmin ? 
+                                `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition">Preview</button>` : 
+                                (unlocked.includes(c.id) ? 
+                                    `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-green-600 px-4 py-2 rounded-xl text-xs font-bold">Enter Class</button>` : 
+                                    `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs font-bold">Buy Now</button>`)
+                            }
+                        </div>
+                    </div>
                 </div>
-            ` : ''}
-            
-            <img src="${c.thumbnail_url}" class="w-full h-40 object-cover rounded-2xl mb-4">
-            <h3 class="font-bold text-lg mb-2">${c.title}</h3>
-            
-            <div class="flex justify-between items-center">
-                <span class="text-rose-500 font-bold">৳${c.price}</span>
-                
-                ${isAdmin ? 
-                    `<button class="bg-gray-700 px-4 py-2 rounded-xl text-xs cursor-default">Admin Mode</button>` : 
-                    (unlocked.includes(c.id) ? 
-                        `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-green-600 px-4 py-2 rounded-xl text-xs">Enter Class</button>` : 
-                        `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs">Buy Now</button>`)
-                }
-            </div>
-        </div>
-    `).join('');
-}
-
-// NEW: Function to handle Editing
-async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
-    const newTitle = prompt("Edit Course Title:", oldTitle);
-    const newPrice = prompt("Edit Price:", oldPrice);
-    const newThumb = prompt("Edit Thumbnail URL:", oldThumb);
-    const newLink = prompt("Edit Playlist ID (or Link):", oldLink);
-
-    if (newTitle && newPrice && newThumb && newLink) {
-        const cleanLink = getListId(newLink); // Automatically fixes full links to IDs
-        const { error } = await supabaseClient
-            .from('paid_courses')
-            .update({ 
-                title: newTitle, 
-                price: newPrice, 
-                thumbnail_url: newThumb, 
-                video_playlist_link: cleanLink 
-            })
-            .eq('id', id);
-
-        if(!error) {
-            alert("Course Updated!");
-            fetchCourses();
-        } else {
-            alert("Error updating course.");
+            `).join('');
         }
-    }
-}
+
+        async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
+            const newTitle = prompt("Edit Course Title:", oldTitle);
+            const newPrice = prompt("Edit Price:", oldPrice);
+            const newThumb = prompt("Edit Thumbnail URL:", oldThumb);
+            const newLink = prompt("Edit Playlist ID (or Link):", oldLink);
+
+            if (newTitle && newPrice && newThumb && newLink) {
+                const cleanLink = getListId(newLink);
+                const { error } = await supabaseClient
+                    .from('paid_courses')
+                    .update({ title: newTitle, price: newPrice, thumbnail_url: newThumb, video_playlist_link: cleanLink })
+                    .eq('id', id);
+
+                if(!error) { alert("Course Updated!"); fetchCourses(); }
+            }
+        }
 
         async function publishCourse() {
             const title = document.getElementById('c-title').value, price = document.getElementById('c-price').value;
             const thumb = document.getElementById('c-thumb').value, list = getListId(document.getElementById('c-playlist').value);
-            await supabaseClient.from('paid_courses').insert([{ title, price, thumbnail_url: thumb, video_playlist_link: list }]);
+            await supabaseClient.from('paid_courses').insert([{ title, price, thumbnail_url: thumb, video_playlist_link: list, category: currentCategory }]);
             fetchCourses();
         }
 
@@ -299,7 +300,6 @@ async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
         async function deleteNotice(id) { await supabaseClient.from('notices').delete().eq('id', id); fetchNotices(); }
         async function editNotice(id, old) { const n = prompt("Update notice:", old); if(n) { await supabaseClient.from('notices').update({ content: n }).eq('id', id); fetchNotices(); } }
 
-        // Fix: Payment Enrollment display
         async function fetchEnrollments() {
             const { data } = await supabaseClient.from('course_access').select('*, paid_courses(title)').eq('status', 'pending');
             const container = document.getElementById('pending-requests');
@@ -307,10 +307,9 @@ async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
                 container.innerHTML = data?.map(e => `
                     <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
                         <div class="text-xs">
-                            <p class="font-bold">${e.paid_courses?.title}</p>
+                            <p class="font-bold text-rose-500">${e.paid_courses?.title}</p>
                             <p class="text-gray-500">${e.student_phone} | Trx: ${e.trx_id}</p>
                         </div>
-                        // Inside fetchEnrollments() mapping:
                         <div class="flex gap-2">
                             <button onclick="verifyPay('${e.id}', 'approved')" class="bg-green-600 px-3 py-1 rounded-lg text-[10px] font-bold">Approve</button>
                             <button onclick="verifyPay('${e.id}', 'rejected')" class="bg-rose-600 px-3 py-1 rounded-lg text-[10px] font-bold">Reject</button>
@@ -320,31 +319,19 @@ async function editCourse(id, oldTitle, oldPrice, oldThumb, oldLink) {
             }
         }
 
-async function verifyPay(id, newStatus) { 
-    // 1. Tell Supabase to find the row with this ID and change the status
-    const { error } = await supabaseClient
-        .from('course_access')
-        .update({ status: newStatus }) // This changes it to 'approved' or 'rejected'
-        .eq('id', id); 
+        async function verifyPay(id, newStatus) { 
+            const { error } = await supabaseClient.from('course_access').update({ status: newStatus }).eq('id', id); 
+            if(!error) { alert(`Enrollment has been ${newStatus}!`); fetchEnrollments(); fetchCourses(); }
+        }
 
-    if(!error) {
-        // 2. Alert you so you know it worked
-        alert(`Enrollment has been ${newStatus}!`);
-        
-        // 3. Refresh the lists so the student disappears from the "Pending" list
-        fetchEnrollments(); 
-        fetchCourses();
-    } else {
-        console.error("Error updating payment:", error);
-    }
-}
-
-        // Fix: Highlight Logic
         function setTab(t) { 
             currentCategory = t; 
             renderVideos(); 
+            fetchCourses(); // Sync paid courses with the tab
+            
+            // Fix: Highlighting all tab buttons (Free and Paid)
             document.querySelectorAll('[id^="tab-"]').forEach(btn => {
-                if(btn.id === `tab-${t}`) {
+                if(btn.id === `tab-${t}` || btn.id === `tab-paid-${t}`) {
                     btn.classList.replace('tab-inactive', 'tab-active');
                 } else {
                     btn.classList.replace('tab-active', 'tab-inactive');
@@ -352,9 +339,14 @@ async function verifyPay(id, newStatus) {
             }); 
         }
 
+        function toggleNoticeSidebar() {
+            const sb = document.getElementById('notice-sidebar');
+            sb.classList.toggle('translate-x-full');
+            document.getElementById('notice-dot').classList.add('hidden');
+        }
+
         function setAdminMode(m) { ['free','paid','notices','verify'].forEach(s => document.getElementById(`adm-${s}`).classList.toggle('hidden', s !== m)); }
         
-        // Fix: Switch View logic for "Go Home"
         function switchView(v) { 
             document.getElementById('free-view').classList.toggle('hidden', v !== 'free'); 
             document.getElementById('paid-view').classList.toggle('hidden', v !== 'paid'); 
@@ -365,7 +357,7 @@ async function verifyPay(id, newStatus) {
             } else {
                 btn.innerText = 'Paid Academy';
                 btn.onclick = () => switchView('paid');
-                closeClassroom(); // Reset video if leaving paid section
+                closeClassroom(); 
             }
         }
 
