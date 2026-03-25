@@ -262,12 +262,42 @@
         }
 
         async function publishCourse() {
-            const title = document.getElementById('c-title').value, price = document.getElementById('c-price').value;
-            const thumb = document.getElementById('c-thumb').value, list = getListId(document.getElementById('c-playlist').value);
-            await supabaseClient.from('paid_courses').insert([{ title, price, thumbnail_url: thumb, video_playlist_link: list, category: currentCategory }]);
-            fetchCourses();
-        }
+            const title = document.getElementById('c-title').value;
+            const price = document.getElementById('c-price').value;
+            const thumb = document.getElementById('c-thumb').value;
+            const playlistInput = document.getElementById('c-playlist').value;
+            const list = getListId(playlistInput);
 
+            // Validation to prevent empty rows
+            if(!title || !price || !thumb) {
+                alert("Please fill in the Title, Price, and Thumbnail!");
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('paid_courses')
+                .insert([{ 
+                    title, 
+                    price: Number(price), 
+                    thumbnail_url: thumb, 
+                    video_playlist_link: list, 
+                    category: currentCategory // Make sure this matches 'SSC', 'HSC', etc.
+                }]);
+
+            if (error) {
+                console.error("Error publishing:", error);
+                alert("Error: " + error.message);
+            } else {
+                alert("Course Published Successfully!");
+                // Clear inputs
+                document.getElementById('c-title').value = "";
+                document.getElementById('c-price').value = "";
+                document.getElementById('c-thumb').value = "";
+                document.getElementById('c-playlist').value = "";
+                // Refresh the UI
+                fetchCourses();
+            }
+        }
         async function deleteCourse(id) { if(confirm("Delete Course?")) { await supabaseClient.from('paid_courses').delete().eq('id', id); fetchCourses(); } }
 
         let currentOpenCourseId = null;
