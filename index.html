@@ -235,9 +235,28 @@
         }
 
         function setTab(t) {
-            currentTab = t;
-            renderVideos();
+    currentTab = t;
+    
+    // 1. Find all tab buttons
+    const tabs = ['SSC', 'HSC', 'Admission'];
+    
+    tabs.forEach(tabName => {
+        const btn = document.getElementById(`tab-${tabName}`);
+        if (!btn) return;
+
+        // 2. If it's the selected tab, add the color and shadow
+        if (tabName === t) {
+            btn.classList.add('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-900/40');
+            btn.classList.remove('text-gray-400');
+        } else {
+            // 3. If not selected, make it look inactive
+            btn.classList.remove('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-900/40');
+            btn.classList.add('text-gray-400');
         }
+    });
+
+    renderVideos();
+}
 
         function renderVideos() {
             const grid = document.getElementById('video-grid');
