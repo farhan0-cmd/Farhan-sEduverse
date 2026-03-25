@@ -80,24 +80,26 @@
                 </div>
 
                 <div class="pt-8 border-t border-white/5">
-                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Broadcast Control</h3>
+                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
                     
-                    <div id="admin-notice-manager" class="mb-6 hidden">
-                         <div class="flex items-center justify-between bg-[#050505] p-4 rounded-2xl border border-white/5">
-                            <div class="flex-1 pr-4">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Live Notice Content:</p>
-                                <p id="current-notice-display" class="text-sm text-gray-300 italic">Loading...</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="prepareNoticeEdit()" class="px-4 py-2 bg-blue-600/20 text-blue-500 rounded-lg hover:bg-blue-600 hover:text-white transition-all text-xs font-bold uppercase">Edit</button>
-                                <button onclick="clearNotice()" class="px-4 py-2 bg-rose-600/20 text-rose-500 rounded-lg hover:bg-rose-600 hover:text-white transition-all text-xs font-bold uppercase">Clear</button>
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <div class="relative flex-1 w-full">
+                            <input id="notice-input" placeholder="Type your message for all students here..." class="w-full bg-[#1a1a1a] border border-white/10 p-4 pr-24 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                            
+                            <div id="notice-actions" class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-3 hidden">
+                                <button onclick="prepareNoticeEdit()" title="Edit current" class="text-blue-500 hover:text-blue-400 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </button>
+                                <button onclick="clearNotice()" title="Delete current" class="text-rose-500 hover:text-rose-400 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="flex flex-col md:flex-row gap-4">
-                        <input id="notice-input" placeholder="Type new broadcast message..." class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                        <button onclick="updateNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl">Push Broadcast</button>
+                        <button onclick="updateNotice()" class="w-full md:w-auto bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl whitespace-nowrap">Push Broadcast</button>
                     </div>
                 </div>
             </div>
@@ -190,7 +192,7 @@
             if(isAdmin) { 
                 document.getElementById('admin-panel').classList.remove('hidden'); 
                 document.getElementById('admin-tag').classList.remove('hidden');
-                document.getElementById('admin-notice-manager').classList.remove('hidden');
+                document.getElementById('notice-actions').classList.remove('hidden');
                 fetchUserCount();
             }
             renderVideos();
@@ -221,16 +223,11 @@
             if (!error && data) {
                 activeNoticeString = data.content;
                 document.getElementById('sidebar-notice-text').innerText = data.content;
-                
                 const dateObj = new Date(data.updated_at);
                 document.getElementById('notice-time').innerText = "Posted: " + dateObj.toLocaleDateString();
                 
                 if(document.getElementById('notice-sidebar').classList.contains('translate-x-full')) {
                     document.getElementById('notice-dot').classList.remove('hidden');
-                }
-                
-                if(isAdmin) {
-                    document.getElementById('current-notice-display').innerText = `"${data.content}"`;
                 }
             }
         }
@@ -242,35 +239,33 @@
             
             const { error } = await supabaseClient
                 .from('notices')
-                .update({ 
-                    content: newContent, 
-                    updated_at: new Date().toISOString() 
-                })
+                .update({ content: newContent, updated_at: new Date().toISOString() })
                 .eq('id', 1);
                 
             if(!error) { 
                 alert("📢 Broadcast Published!"); 
-                inputField.value = ""; // FIX: Clears input box after success
+                inputField.value = ""; // Auto-clear input
                 fetchNotice(); 
             } else {
                 alert("Cloud Error: " + error.message);
             }
         }
 
-        // Feature: Move current notice into input for editing
         function prepareNoticeEdit() {
             document.getElementById('notice-input').value = activeNoticeString;
             document.getElementById('notice-input').focus();
         }
 
-        // Feature: Clear notice logic
         async function clearNotice() {
-            if(!confirm("Clear notice board for all students?")) return;
+            if(!confirm("Delete current notice?")) return;
             const { error } = await supabaseClient
                 .from('notices')
                 .update({ content: "No active notices.", updated_at: new Date().toISOString() })
                 .eq('id', 1);
-            if(!error) fetchNotice();
+            if(!error) {
+                document.getElementById('notice-input').value = "";
+                fetchNotice();
+            }
         }
 
         async function addVideo() {
