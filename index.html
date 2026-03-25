@@ -7,8 +7,6 @@
     <title>Farhan's Eduverse | Premium Academy</title>
     
     <link rel="icon" href="https://fav.farm/🎓" />
-    <link rel="apple-touch-icon" href="https://fav.farm/🎓">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
@@ -20,8 +18,8 @@
         ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
         .sidebar-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .course-card:hover { transform: translateY(-5px); border-color: #e11d48; }
-        textarea { resize: none; }
+        .course-card:hover { transform: translateY(-5px); border-color: #e11d48; transition: 0.3s; }
+        input, textarea, select { background: #1a1a1a !important; border: 1px solid rgba(255,255,255,0.05) !important; color: white !important; }
     </style>
 </head>
 <body>
@@ -29,12 +27,12 @@
     <div id="login-page" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl text-center">
             <h1 class="text-4xl font-black mb-2 tracking-tighter italic">FARHAN'S <span class="text-rose-600 underline decoration-rose-900/50">EDUVERSE</span></h1>
-            <p class="text-gray-500 mb-10 text-sm tracking-widest uppercase font-bold">Mentor Portal</p>
+            <p class="text-gray-500 mb-10 text-sm tracking-widest uppercase font-bold">Student & Mentor Portal</p>
             <div class="space-y-4 text-left">
-                <input type="tel" id="login-phone" placeholder="Phone Number" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600">
-                <input type="password" id="login-pass" placeholder="Password" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none focus:ring-2 focus:ring-rose-600">
-                <button onclick="handleLogin(false)" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl mt-4 transition-all shadow-lg shadow-rose-900/20">Enter Classroom</button>
-                <button onclick="handleLogin(true)" class="w-full text-[10px] text-gray-600 mt-6 hover:text-rose-500 transition uppercase tracking-widest font-bold text-center">Operator Access (Admin Only)</button>
+                <input type="tel" id="login-phone" placeholder="Phone Number" class="w-full rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-600">
+                <input type="password" id="login-pass" placeholder="Password (Fixed for this number)" class="w-full rounded-2xl p-4 outline-none focus:ring-2 focus:ring-rose-600">
+                <button onclick="handleLogin()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-4 rounded-2xl mt-4 transition-all shadow-lg shadow-rose-900/20">Enter Classroom</button>
+                <p class="text-[10px] text-gray-600 text-center mt-4 uppercase tracking-widest">New users will be registered automatically</p>
             </div>
         </div>
     </div>
@@ -43,11 +41,9 @@
         <nav class="border-b border-white/5 p-6 flex justify-between items-center bg-[#080808]/90 sticky top-0 z-40 backdrop-blur-md">
             <div class="flex items-center gap-4">
                 <h1 class="text-2xl font-black tracking-tighter cursor-pointer" onclick="switchView('free')">FARHAN'S <span class="text-rose-600">EDUVERSE</span></h1>
-                <button onclick="toggleNoticeSidebar()" class="relative p-2 bg-white/5 rounded-full hover:bg-rose-600/20 transition-all group">
+                <button onclick="toggleNoticeSidebar()" class="relative p-2 bg-white/5 rounded-full hover:bg-rose-600/20 transition-all">
                     <span id="notice-dot" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-ping hidden"></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400 group-hover:text-rose-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 </button>
             </div>
             <div class="flex items-center gap-4">
@@ -61,46 +57,41 @@
             
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2.5rem] p-10">
                 <h2 class="text-2xl font-black text-rose-500 italic uppercase mb-8">Operator Dashboard</h2>
-                
                 <div class="flex gap-4 mb-8">
                     <button onclick="setAdminTab('free')" id="adm-tab-free" class="bg-rose-600 text-white px-6 py-2 rounded-full text-xs font-bold">Free Videos</button>
                     <button onclick="setAdminTab('paid')" id="adm-tab-paid" class="bg-white/5 text-gray-400 px-6 py-2 rounded-full text-xs font-bold">Paid Courses</button>
                     <button onclick="setAdminTab('verify')" id="adm-tab-verify" class="bg-white/5 text-gray-400 px-6 py-2 rounded-full text-xs font-bold">Verify Payments</button>
                 </div>
 
-                <div id="adm-sec-free" class="grid grid-cols-1 md:grid-cols-4 gap-4 pb-10 border-b border-white/5">
-                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                    <input id="v-url" placeholder="YouTube URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <option value="SSC">SSC</option>
-                        <option value="HSC">HSC</option>
-                        <option value="Admission">Admission</option>
+                <div id="adm-sec-free" class="grid grid-cols-1 md:grid-cols-4 gap-4 pb-10">
+                    <input id="v-title" placeholder="Lesson Title" class="p-4 rounded-2xl outline-none">
+                    <input id="v-url" placeholder="YouTube URL" class="p-4 rounded-2xl outline-none">
+                    <select id="v-cat" class="p-4 rounded-2xl outline-none">
+                        <option value="SSC">SSC</option><option value="HSC">HSC</option><option value="Admission">Admission</option>
                     </select>
                     <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl p-4">Publish Free Video</button>
                 </div>
 
-                <div id="adm-sec-paid" class="hidden space-y-4">
+                <div id="adm-sec-paid" class="hidden space-y-4 pb-10">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input id="c-title" placeholder="Course Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <input id="c-price" type="number" placeholder="Price (BDT)" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <input id="c-thumb" placeholder="Thumbnail Image URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <input id="c-playlist" placeholder="Secret Playlist Link" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <textarea id="c-desc" placeholder="Course Description (e.g. 1500+ MCQ Solve, Tips & Tricks...)" class="md:col-span-2 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none h-32"></textarea>
-                        <button onclick="publishPaidCourse()" class="md:col-span-2 bg-rose-600 text-white font-black rounded-2xl p-4 uppercase tracking-widest">Launch Premium Course</button>
+                        <input id="c-title" placeholder="Course Title" class="p-4 rounded-2xl outline-none">
+                        <input id="c-price" type="number" placeholder="Price (BDT)" class="p-4 rounded-2xl outline-none">
+                        <input id="c-thumb" placeholder="Thumbnail URL" class="p-4 rounded-2xl outline-none">
+                        <input id="c-playlist" placeholder="Secret Playlist Link" class="p-4 rounded-2xl outline-none">
+                        <textarea id="c-desc" placeholder="Course Description..." class="md:col-span-2 p-4 rounded-2xl outline-none h-24"></textarea>
+                        <button onclick="publishPaidCourse()" class="md:col-span-2 bg-rose-600 text-white font-black rounded-2xl p-4 uppercase">Launch Premium Course</button>
                     </div>
                 </div>
 
-                <div id="adm-sec-verify" class="hidden">
-                    <div id="pending-list" class="space-y-4 max-h-[400px] overflow-y-auto">
-                        <p class="text-gray-500 text-center py-10">No pending verification requests.</p>
-                    </div>
+                <div id="adm-sec-verify" class="hidden space-y-4">
+                    <div id="pending-list" class="space-y-4 max-h-[400px] overflow-y-auto"></div>
                 </div>
 
-                <div class="mt-10">
+                <div class="mt-10 pt-10 border-t border-white/5">
                     <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
-                    <div class="flex flex-col md:flex-row gap-4 items-center">
-                        <input id="notice-input" placeholder="Type your message here..." class="flex-1 w-full bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <button id="broadcast-btn" onclick="publishNewNotice()" class="w-full md:w-auto bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">Push Broadcast</button>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <input id="notice-input" placeholder="Type message..." class="flex-1 p-4 rounded-2xl outline-none">
+                        <button onclick="publishNewNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all">Push Broadcast</button>
                     </div>
                 </div>
             </div>
@@ -115,10 +106,7 @@
             </div>
 
             <div id="paid-view" class="hidden">
-                <div class="mb-12">
-                    <h2 class="text-4xl font-black italic">PREMIUM <span class="text-rose-600">ACADEMY</span></h2>
-                    <p class="text-gray-500 mt-2">Structured paid courses for intensive preparation.</p>
-                </div>
+                <div class="mb-12"><h2 class="text-4xl font-black italic">PREMIUM <span class="text-rose-600">ACADEMY</span></h2></div>
                 <div id="paid-course-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </div>
         </div>
@@ -127,28 +115,21 @@
     <div id="pay-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
         <div class="w-full max-w-md bg-[#111] border border-white/10 rounded-[2.5rem] p-10 relative">
             <button onclick="closePayModal()" class="absolute top-6 right-6 text-gray-500">✕</button>
-            <h3 class="text-2xl font-black text-rose-500 mb-2 italic">ENROLL NOW</h3>
-            <p id="pay-course-name" class="text-gray-400 text-sm mb-8 uppercase font-bold tracking-widest"></p>
-            
+            <h3 id="pay-course-name" class="text-2xl font-black text-rose-500 mb-8 italic">ENROLL NOW</h3>
             <div class="bg-rose-600/10 border border-rose-500/20 p-6 rounded-3xl mb-8 text-center">
-                <p class="text-xs text-rose-400 font-bold uppercase mb-2">Send Money to (bKash Personal)</p>
+                <p class="text-xs text-rose-400 font-bold uppercase mb-2">bKash Personal</p>
                 <p class="text-3xl font-black text-white">01533082057</p>
                 <p id="pay-amount" class="text-sm font-bold text-gray-400 mt-2"></p>
             </div>
-
             <div class="space-y-4">
-                <input id="pay-phone" placeholder="Your bKash Number" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none">
-                <input id="pay-trx" placeholder="Transaction ID (TrxID)" class="w-full bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-white outline-none">
-                <button onclick="submitEnrollment()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-rose-900/20">Verify & Request Access</button>
+                <input id="pay-trx" placeholder="Transaction ID (TrxID)" class="w-full rounded-2xl p-4 outline-none">
+                <button onclick="submitEnrollment()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded-2xl">Request Access</button>
             </div>
         </div>
     </div>
 
-    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 max-w-[85%] bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8 overflow-y-auto">
-        <div class="flex justify-between items-center mb-10">
-            <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
-            <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex bg-white/5 rounded-full items-center justify-center">✕</button>
-        </div>
+    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 max-w-[85%] bg-[#0a0a0a] border-l border-white/5 sidebar-transition translate-x-full z-50 p-8 overflow-y-auto">
+        <div class="flex justify-between items-center mb-10"><h3 class="text-2xl font-black italic">NOTICES</h3><button onclick="toggleNoticeSidebar()">✕</button></div>
         <div id="sidebar-content" class="space-y-6"></div>
     </div>
     <div id="sidebar-overlay" onclick="toggleNoticeSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-40"></div>
@@ -158,54 +139,44 @@
         const SB_KEY = "sb_publishable_JtkUYO8tBkzdIxz9xStn5A_B9YQgHwE";
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        const MASTER_PHONE = "01533082057";
-        const MASTER_PASS = "FARHAN03";
-
         let isAdmin = false;
         let currentUserPhone = "";
         let selectedCourseId = null;
         let videos = [];
         let currentTab = 'SSC';
 
-        window.onload = async function() {
-            const savedUser = localStorage.getItem('eduverse_session');
-            if (savedUser) {
-                const userData = JSON.parse(savedUser);
-                isAdmin = userData.isAdmin;
-                currentUserPhone = userData.phone;
+        window.onload = async () => {
+            const session = localStorage.getItem('eduverse_session');
+            if(session) {
+                const data = JSON.parse(session);
+                currentUserPhone = data.phone;
+                isAdmin = data.isAdmin;
                 showApp();
             }
-            setTab('SSC'); 
+            setTab('SSC');
             fetchVideos();
         };
 
-        function switchView(view) {
-            const free = document.getElementById('free-view');
-            const paid = document.getElementById('paid-view');
-            const btn = document.getElementById('academy-btn');
+        async function handleLogin() {
+            const phone = document.getElementById('login-phone').value;
+            const pass = document.getElementById('login-pass').value;
+            if(!phone || !pass) return alert("Fill all fields");
 
-            if(view === 'paid') {
-                free.classList.add('hidden');
-                paid.classList.remove('hidden');
-                btn.innerText = "Back to Free Lectures ←";
-                btn.setAttribute('onclick', "switchView('free')");
-                loadPaidCourses();
+            const { data: user } = await supabaseClient.from('users').select('*').eq('phone', phone).single();
+
+            if(!user) {
+                const { error } = await supabaseClient.from('users').insert([{ phone, password: pass }]);
+                if(!error) completeLogin(phone, false);
+            } else if(user.password === pass) {
+                completeLogin(phone, user.is_admin);
             } else {
-                paid.classList.add('hidden');
-                free.classList.remove('hidden');
-                btn.innerText = "Paid Academy 💎";
-                btn.setAttribute('onclick', "switchView('paid')");
+                alert("Incorrect Password!");
             }
         }
 
-        async function handleLogin(isOp) {
-            const phone = document.getElementById('login-phone').value;
-            const pass = document.getElementById('login-pass').value;
-            if(isOp && phone === MASTER_PHONE && pass === MASTER_PASS) isAdmin = true;
-            else if(!isOp && phone) isAdmin = false;
-            else return alert("Invalid Login");
-
+        function completeLogin(phone, adminStatus) {
             currentUserPhone = phone;
+            isAdmin = adminStatus;
             localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
             showApp();
         }
@@ -213,285 +184,133 @@
         function showApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            fetchNotices();
             if(isAdmin) {
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-tag').classList.remove('hidden');
                 fetchEnrollments();
             }
+            fetchNotices();
+            loadPaidCourses();
         }
 
-        function setAdminTab(tab) {
-            const sections = ['free', 'paid', 'verify'];
-            sections.forEach(s => {
-                document.getElementById(`adm-sec-${s}`).classList.toggle('hidden', s !== tab);
-                const btn = document.getElementById(`adm-tab-${s}`);
-                btn.classList.toggle('bg-rose-600', s === tab);
-                btn.classList.toggle('text-white', s === tab);
-                btn.classList.toggle('bg-white/5', s !== tab);
-                btn.classList.toggle('text-gray-400', s !== tab);
-            });
-        }
-
-        // FIXED: Robust Video Addition with Auto-Thumbnail
+        // --- ADMIN FUNCTIONS ---
         async function addVideo() {
             const title = document.getElementById('v-title').value;
             const rawUrl = document.getElementById('v-url').value;
             const cat = document.getElementById('v-cat').value;
-            
-            if(!title || !rawUrl) return alert("Fill all fields");
+            let vidId = rawUrl.includes("v=") ? rawUrl.split("v=")[1].split("&")[0] : rawUrl.split("/").pop();
+            const thumb = `https://i.ytimg.com/vi/${vidId}/maxresdefault.jpg`;
 
-            let vidId = "";
-            try {
-                if (rawUrl.includes("v=")) {
-                    vidId = rawUrl.split("v=")[1].split("&")[0];
-                } else if (rawUrl.includes("youtu.be/")) {
-                    vidId = rawUrl.split("youtu.be/")[1].split("?")[0];
-                } else {
-                    vidId = rawUrl.split("/").pop();
-                }
-            } catch (e) {
-                return alert("Invalid YouTube URL");
-            }
-
-            const autoThumb = `https://i.ytimg.com/vi/${vidId}/maxresdefault.jpg`;
-
-            const { error } = await supabaseClient.from('videos').insert([{ 
-                title: title, 
-                url: vidId, 
-                category: cat,
-                thumbnail_url: autoThumb 
-            }]);
-
-            if(!error) { 
-                document.getElementById('v-title').value = ""; 
-                document.getElementById('v-url').value = ""; 
-                alert("Video Published!");
-                fetchVideos(); 
-            } else {
-                console.error("Supabase Error:", error.message);
-                alert("Database Error. Ensure 'thumbnail_url' column exists.");
-            }
+            const { error } = await supabaseClient.from('videos').insert([{ title, url: vidId, category: cat, thumbnail_url: thumb }]);
+            if(!error) { alert("Published!"); fetchVideos(); }
         }
 
-        // FIXED: Robust Paid Course Launch
         async function publishPaidCourse() {
             const title = document.getElementById('c-title').value;
             const price = document.getElementById('c-price').value;
             const desc = document.getElementById('c-desc').value;
-            const thumb = document.getElementById('c-thumb').value;
             const link = document.getElementById('c-playlist').value;
+            const thumb = document.getElementById('c-thumb').value;
 
-            if(!title || !price || !link || !desc) return alert("Please fill all required fields!");
-
-            const { error } = await supabaseClient.from('paid_courses').insert([{ 
-                title, 
-                price: parseInt(price), 
-                description: desc,
-                thumbnail_url: thumb || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000", 
-                video_playlist_link: link 
-            }]);
-            
-            if(!error) {
-                alert("Premium Course Launched!");
-                loadPaidCourses();
-                ['c-title', 'c-price', 'c-thumb', 'c-playlist', 'c-desc'].forEach(id => document.getElementById(id).value = "");
-            } else {
-                console.error("Supabase Error:", error.message);
-                alert("Error launching course. Check database columns.");
-            }
+            const { error } = await supabaseClient.from('paid_courses').insert([{ title, price: parseInt(price), description: desc, video_playlist_link: link, thumbnail_url: thumb }]);
+            if(!error) { alert("Course Launched!"); loadPaidCourses(); }
         }
 
         async function fetchEnrollments() {
-            const { data, error } = await supabaseClient.from('course_access').select('*, paid_courses(title)').eq('status', 'pending');
+            const { data } = await supabaseClient.from('course_access').select('*, paid_courses(title)').eq('status', 'pending');
             const container = document.getElementById('pending-list');
-            if(data && data.length > 0) {
-                container.innerHTML = data.map(e => `
-                    <div class="bg-black/50 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
-                        <div>
-                            <p class="text-white font-bold">${e.paid_courses ? e.paid_courses.title : 'Deleted Course'}</p>
-                            <p class="text-[10px] text-gray-500">Phone: ${e.student_phone} | TrxID: ${e.trx_id}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="verifyPayment('${e.id}', 'approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg text-[10px] font-bold">Approve</button>
-                            <button onclick="verifyPayment('${e.id}', 'rejected')" class="bg-white/10 text-gray-500 px-4 py-2 rounded-lg text-[10px] font-bold">Reject</button>
-                        </div>
+            container.innerHTML = data?.length ? data.map(e => `
+                <div class="bg-black/50 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
+                    <div><p class="font-bold">${e.paid_courses?.title}</p><p class="text-[10px] text-gray-500">${e.student_phone} | ${e.trx_id}</p></div>
+                    <div class="flex gap-2">
+                        <button onclick="verifyPayment('${e.id}', 'approved')" class="bg-green-600 px-4 py-2 rounded-lg text-[10px] font-bold">Approve</button>
+                        <button onclick="verifyPayment('${e.id}', 'rejected')" class="bg-white/10 px-4 py-2 rounded-lg text-[10px] font-bold">Reject</button>
                     </div>
-                `).join('');
-            } else {
-                container.innerHTML = `<p class="text-gray-500 text-center py-10">No pending verification requests.</p>`;
-            }
+                </div>
+            `).join('') : '<p class="text-gray-500 text-center py-4">No pending requests</p>';
         }
 
         async function verifyPayment(id, status) {
-            const { error } = await supabaseClient.from('course_access').update({ status }).eq('id', id);
-            if(!error) {
-                alert("Status Updated!");
-                fetchEnrollments();
-                if(!document.getElementById('paid-view').classList.contains('hidden')) loadPaidCourses();
-            }
+            await supabaseClient.from('course_access').update({ status }).eq('id', id);
+            fetchEnrollments();
+            loadPaidCourses();
         }
 
+        // --- USER FUNCTIONS ---
         async function loadPaidCourses() {
-            const container = document.getElementById('paid-course-grid');
-            container.innerHTML = `<p class="text-gray-500">Scanning Academy...</p>`;
-
             const { data: courses } = await supabaseClient.from('paid_courses').select('*');
             const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', currentUserPhone).eq('status', 'approved');
+            const paidIds = access ? access.map(a => a.course_id) : [];
 
-            const accessList = access ? access.map(a => a.course_id) : [];
-
-            if (!courses || courses.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 text-center py-10">No premium courses available yet.</p>`;
-                return;
-            }
-
-            container.innerHTML = courses.map(c => {
-                const isPaid = accessList.includes(c.id);
-                return `
-                    <div class="course-card bg-[#111] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all flex flex-col h-full">
-                        <div class="h-48 bg-gray-800 relative">
-                            <img src="${c.thumbnail_url}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop'">
-                            <div class="absolute top-4 right-4 bg-rose-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Premium</div>
+            document.getElementById('paid-course-grid').innerHTML = courses?.map(c => `
+                <div class="course-card bg-[#111] border border-white/5 rounded-[2.5rem] overflow-hidden flex flex-col h-full">
+                    <img src="${c.thumbnail_url}" class="h-48 w-full object-cover">
+                    <div class="p-8 flex flex-col flex-1">
+                        <h3 class="text-xl font-black mb-2">${c.title}</h3>
+                        <p class="text-gray-500 text-sm mb-6 italic line-clamp-2">${c.description}</p>
+                        <div class="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
+                            <div><p class="text-2xl font-black text-rose-500">৳${c.price}</p></div>
+                            ${paidIds.includes(c.id) ? 
+                                `<a href="${c.video_playlist_link}" target="_blank" class="bg-green-600 px-6 py-3 rounded-2xl text-xs font-bold">Enter Class</a>` :
+                                `<button onclick="openPayModal(${c.id}, '${c.title}', ${c.price})" class="bg-rose-600 px-6 py-3 rounded-2xl text-xs font-bold">Buy Now</button>`
+                            }
                         </div>
-                        <div class="p-8 flex flex-col flex-1">
-                            <h3 class="text-xl font-black mb-2 leading-tight">${c.title}</h3>
-                            <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">${c.description || 'No description provided.'}</p>
-                            <div class="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
-                                <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Price</p>
-                                    <p class="text-2xl font-black text-rose-500">৳${c.price}</p>
-                                </div>
-                                ${isPaid ? 
-                                    `<a href="${c.video_playlist_link}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-black px-6 py-3 rounded-2xl text-xs">Enter Classroom</a>` :
-                                    `<button onclick="openPayModal(${c.id}, '${c.title}', ${c.price})" class="bg-rose-600 hover:bg-rose-700 text-white font-black px-6 py-3 rounded-2xl text-xs">Buy Now</button>`
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function openPayModal(id, title, price) {
-            selectedCourseId = id;
-            document.getElementById('pay-course-name').innerText = title;
-            document.getElementById('pay-amount').innerText = "Amount: ৳" + price;
-            document.getElementById('pay-modal').classList.remove('hidden');
-        }
-
-        function closePayModal() { document.getElementById('pay-modal').classList.add('hidden'); }
-
-        async function submitEnrollment() {
-            const phone = document.getElementById('pay-phone').value;
-            const trx = document.getElementById('pay-trx').value;
-
-            if(!phone || !trx) return alert("Please fill both fields!");
-
-            const { error } = await supabaseClient.from('course_access').insert([{
-                student_phone: phone,
-                trx_id: trx,
-                course_id: selectedCourseId,
-                status: 'pending'
-            }]);
-
-            if(error) {
-                alert("Error: Transaction ID might be already used.");
-            } else {
-                alert("Payment Submitted! Admin will verify your bKash TrxID within 30 mins.");
-                closePayModal();
-                loadPaidCourses();
-            }
-        }
-
-        async function fetchNotices() {
-            const container = document.getElementById('sidebar-content');
-            const { data } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
-            if (!data) return;
-            container.innerHTML = data.map(n => `
-                <div class="bg-[#111] border border-white/5 p-6 rounded-[2rem]">
-                    <p class="text-[10px] text-rose-500 font-black mb-2 uppercase">Announcement</p>
-                    <p class="text-gray-200 text-sm italic">${n.content}</p>
-                    <div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
-                        <span class="text-[9px] text-gray-600 font-bold uppercase">${new Date(n.created_at).toLocaleDateString()}</span>
-                        ${isAdmin ? `<button onclick="deleteNotice('${n.id}')" class="text-rose-500">Delete</button>` : ''}
                     </div>
                 </div>
             `).join('');
-            if(data.length > 0) document.getElementById('notice-dot').classList.remove('hidden');
         }
 
-        async function publishNewNotice() {
-            const val = document.getElementById('notice-input').value;
-            if(!val) return;
-            const { error } = await supabaseClient.from('notices').insert([{ content: val }]);
-            if(!error) { document.getElementById('notice-input').value = ""; fetchNotices(); alert("Published!"); }
+        async function submitEnrollment() {
+            const trx = document.getElementById('pay-trx').value;
+            if(!trx) return alert("Enter TrxID");
+            const { error } = await supabaseClient.from('course_access').insert([{ student_phone: currentUserPhone, trx_id: trx, course_id: selectedCourseId, status: 'pending' }]);
+            if(!error) { alert("Submitted!"); closePayModal(); }
         }
 
-        async function deleteNotice(id) {
-            if(!confirm("Delete?")) return;
-            await supabaseClient.from('notices').delete().eq('id', id);
-            fetchNotices();
-        }
-
-        function toggleNoticeSidebar() {
-            document.getElementById('notice-sidebar').classList.toggle('translate-x-full');
-            document.getElementById('sidebar-overlay').classList.toggle('hidden');
+        async function fetchNotices() {
+            const { data } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
+            document.getElementById('sidebar-content').innerHTML = data?.map(n => `
+                <div class="bg-[#111] p-6 rounded-[2rem] border border-white/5">
+                    <p class="text-gray-200 text-sm italic">${n.content}</p>
+                </div>
+            `).join('');
+            if(data?.length) document.getElementById('notice-dot').classList.remove('hidden');
         }
 
         async function fetchVideos() {
             const { data } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
-            if (data) { 
-                videos = data; 
-                renderVideos(); 
-            }
-        }
-
-        function setTab(t) {
-            currentTab = t;
-            ['SSC', 'HSC', 'Admission'].forEach(tab => {
-                const btn = document.getElementById(`tab-${tab}`);
-                if(tab === t) {
-                    btn.classList.add('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-900/40');
-                    btn.classList.remove('text-gray-400');
-                } else {
-                    btn.classList.remove('bg-rose-600', 'text-white', 'shadow-lg', 'shadow-rose-900/40');
-                    btn.classList.add('text-gray-400');
-                }
-            });
+            videos = data || [];
             renderVideos();
         }
 
         function renderVideos() {
-            const grid = document.getElementById('video-grid');
-            if(!videos || videos.length === 0) {
-                grid.innerHTML = `<p class="text-gray-500 col-span-full text-center py-20">No videos found in this sector.</p>`;
-                return;
-            }
             const filtered = videos.filter(v => v.category === currentTab);
-            if(filtered.length === 0) {
-                grid.innerHTML = `<p class="text-gray-500 col-span-full text-center py-20">No videos found for ${currentTab}.</p>`;
-                return;
-            }
-
-            grid.innerHTML = filtered.map(v => `
+            document.getElementById('video-grid').innerHTML = filtered.map(v => `
                 <div class="group">
                     <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 relative">
                         <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
-                        ${isAdmin ? `<button onclick="deleteVideo('${v.id}')" class="absolute top-2 right-2 bg-black/60 p-2 rounded-full text-rose-500 hover:bg-rose-600 hover:text-white transition-all">✕</button>` : ''}
+                        ${isAdmin ? `<button onclick="deleteVideo('${v.id}')" class="absolute top-2 right-2 bg-black/60 p-2 rounded-full text-rose-500">✕</button>` : ''}
                     </div>
                     <h3 class="mt-4 font-black">${v.title}</h3>
                 </div>
             `).join('');
         }
 
-        async function deleteVideo(id) {
-            if(!confirm("Delete this video?")) return;
-            const { error } = await supabaseClient.from('videos').delete().eq('id', id);
-            if(!error) fetchVideos();
+        function switchView(v) {
+            document.getElementById('free-view').classList.toggle('hidden', v !== 'free');
+            document.getElementById('paid-view').classList.toggle('hidden', v !== 'paid');
+            document.getElementById('academy-btn').innerText = v === 'paid' ? "Back Home ←" : "Paid Academy 💎";
+            document.getElementById('academy-btn').onclick = () => switchView(v === 'paid' ? 'free' : 'paid');
         }
 
+        function setTab(t) { currentTab = t; renderVideos(); }
+        function openPayModal(id, title, price) { selectedCourseId = id; document.getElementById('pay-course-name').innerText = title; document.getElementById('pay-amount').innerText = `৳${price}`; document.getElementById('pay-modal').classList.remove('hidden'); }
+        function closePayModal() { document.getElementById('pay-modal').classList.add('hidden'); }
+        function toggleNoticeSidebar() { document.getElementById('notice-sidebar').classList.toggle('translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden'); }
+        function setAdminTab(tab) { ['free', 'paid', 'verify'].forEach(s => document.getElementById(`adm-sec-${s}`).classList.toggle('hidden', s !== tab)); }
         function logout() { localStorage.removeItem('eduverse_session'); location.reload(); }
+        async function deleteVideo(id) { if(confirm("Delete?")) { await supabaseClient.from('videos').delete().eq('id', id); fetchVideos(); } }
+        async function publishNewNotice() { const val = document.getElementById('notice-input').value; if(val) { await supabaseClient.from('notices').insert([{ content: val }]); document.getElementById('notice-input').value = ""; fetchNotices(); } }
     </script>
 </body>
 </html>
