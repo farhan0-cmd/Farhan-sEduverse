@@ -68,7 +68,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
                     <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
                     <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none cursor-pointer">
@@ -77,30 +77,6 @@
                         <option value="Admission">Admission</option>
                     </select>
                     <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl p-4 transition-all shadow-lg shadow-rose-900/20">Publish Video</button>
-                </div>
-
-                <div class="pt-8 border-t border-white/5">
-                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
-                    
-                    <div class="flex flex-col md:flex-row gap-4 items-center">
-                        <div class="relative flex-1 w-full">
-                            <input id="notice-input" placeholder="Type your message for all students here..." class="w-full bg-[#1a1a1a] border border-white/10 p-4 pr-24 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                            
-                            <div id="notice-actions" class="absolute right-4 top-1/2 -translate-y-1/2 flex gap-3 hidden">
-                                <button onclick="prepareNoticeEdit()" title="Edit current" class="text-blue-500 hover:text-blue-400 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </button>
-                                <button onclick="clearNotice()" title="Delete current" class="text-rose-500 hover:text-rose-400 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button onclick="updateNotice()" class="w-full md:w-auto bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl whitespace-nowrap">Push Broadcast</button>
-                    </div>
                 </div>
             </div>
 
@@ -125,16 +101,9 @@
             <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
             <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-rose-600 transition-all">✕</button>
         </div>
+        
         <div id="sidebar-content" class="space-y-6">
-            <div class="bg-rose-600/5 border border-rose-600/20 p-6 rounded-[2rem] shadow-inner">
-                <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Admin Announcement</p>
-                <p id="sidebar-notice-text" class="text-gray-200 leading-relaxed italic text-sm md:text-base">No active notices.</p>
-                <div class="mt-8 pt-4 border-t border-white/5 flex justify-between items-center">
-                    <span class="text-[9px] text-gray-600 font-bold uppercase tracking-widest" id="notice-time"></span>
-                    <span class="px-2 py-1 bg-rose-600/20 text-rose-500 text-[8px] font-black rounded uppercase">Live</span>
-                </div>
             </div>
-        </div>
     </div>
     <div id="sidebar-overlay" onclick="toggleNoticeSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-40"></div>
 
@@ -149,7 +118,6 @@
         let isAdmin = false;
         let currentTab = 'SSC';
         let videos = [];
-        let activeNoticeString = "";
 
         window.onload = async function() {
             const savedUser = localStorage.getItem('eduverse_session');
@@ -187,12 +155,11 @@
         function showApp() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            fetchNotice();
+            fetchNotices(); // Updated function name
             
             if(isAdmin) { 
                 document.getElementById('admin-panel').classList.remove('hidden'); 
                 document.getElementById('admin-tag').classList.remove('hidden');
-                document.getElementById('notice-actions').classList.remove('hidden');
                 fetchUserCount();
             }
             renderVideos();
@@ -218,23 +185,114 @@
             if (!error) document.getElementById('user-count').innerText = count;
         }
 
-        async function fetchNotice() {
-            const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).maybeSingle();
-            if (!error && data) {
-                activeNoticeString = data.content;
-                document.getElementById('sidebar-notice-text').innerText = data.content;
-                const dateObj = new Date(data.updated_at);
-                document.getElementById('notice-time').innerText = "Posted: " + dateObj.toLocaleDateString();
-                
-                if(document.getElementById('notice-sidebar').classList.contains('translate-x-full')) {
-                    document.getElementById('notice-dot').classList.remove('hidden');
-                }
+        // Updated Function: Now fetches and renders all notices
+        async function fetchNotices() {
+            const contentContainer = document.getElementById('sidebar-content');
+            const { data, error } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Notice fetch error:", error);
+                return;
+            }
+
+            contentContainer.innerHTML = ''; // Clear loading/old data
+
+            if (data.length === 0) {
+                contentContainer.innerHTML = '<p class="text-gray-500 italic text-center py-10">No notices at the moment.</p>';
+                return;
+            }
+
+            data.forEach(notice => {
+                const dateObj = new Date(notice.updated_at || notice.created_at);
+                const formattedDate = dateObj.toLocaleDateString();
+
+                contentContainer.innerHTML += `
+                    <div class="group relative bg-[#111] border border-white/5 p-6 rounded-[2rem] transition-all hover:border-rose-600 hover:bg-[#1a1a1a]">
+                        <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Admin Announcement</p>
+                        <p class="text-gray-200 leading-relaxed italic text-sm md:text-base">${notice.content}</p>
+                        
+                        <div class="mt-8 pt-4 border-t border-white/5 flex justify-between items-center">
+                            <span class="text-[9px] text-gray-600 font-bold uppercase tracking-widest">POSTED: ${formattedDate}</span>
+                            
+                            ${isAdmin ? `
+                                <div class="flex gap-2">
+                                    <button onclick="prepareEdit('${notice.id}', \`${notice.content.replace(/'/g, "\\'")}\`)" class="p-1.5 text-blue-500 hover:text-white transition-colors" title="Edit Notice">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button onclick="deleteNotice('${notice.id}')" class="p-1.5 text-rose-500 hover:text-white transition-colors" title="Delete Notice">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Update the public view time (just use the latest notice time)
+            if (data.length > 0) {
+                const dateObj = new Date(data[0].updated_at || data[0].created_at);
+                const publicNoticeTime = document.getElementById('notice-time');
+                if (publicNoticeTime) publicNoticeTime.innerText = formattedDate; // Format and post latest date only
+                document.getElementById('notice-dot').classList.remove('hidden');
+            }
+        }
+
+        // Feature: Notice Editing
+        async function prepareEdit(id, content) {
+            // Find the broadcast form in the Admin Dashboard
+            const inputField = document.getElementById('notice-input');
+            inputField.value = content;
+            inputField.focus();
+            
+            // Temporary change of the broadcast button to "Save Changes"
+            const broadcastBtn = document.querySelector('button[onclick="updateNotice()"]');
+            broadcastBtn.innerText = "Save Changes";
+            broadcastBtn.setAttribute('onclick', `saveNoticeEdit('${id}')`);
+        }
+
+        async function saveNoticeEdit(id) {
+            const newContent = document.getElementById('notice-input').value;
+            if(!newContent) return alert("Notice cannot be empty!");
+            
+            const { error } = await supabaseClient
+                .from('notices')
+                .update({ content: newContent, updated_at: new Date().toISOString() })
+                .eq('id', id);
+            
+            if (!error) {
+                alert("📢 Changes Saved!");
+                resetBroadcastForm();
+                fetchNotices();
+            }
+        }
+
+        // Feature: Notice Deleting
+        async function deleteNotice(id) {
+            if(!confirm("Erase this notice permanently?")) return;
+            const { error } = await supabaseClient.from('notices').delete().eq('id', id);
+            if (!error) {
+                alert("Notice erased.");
+                fetchNotices();
+            }
+        }
+
+        // Form reset utility
+        function resetBroadcastForm() {
+            document.getElementById('notice-input').value = "";
+            const broadcastBtn = document.getElementById('broadcast-btn-original'); // I've added this id to html below
+            if(broadcastBtn) {
+                 broadcastBtn.innerText = "Push Broadcast";
+                 broadcastBtn.setAttribute('onclick', `updateNotice()`);
             }
         }
 
         async function updateNotice() {
-            const inputField = document.getElementById('notice-input');
-            const newContent = inputField.value;
+            const newContent = document.getElementById('notice-input').value;
             if(!newContent) return alert("Type something to broadcast!");
             
             const { error } = await supabaseClient
@@ -244,27 +302,10 @@
                 
             if(!error) { 
                 alert("📢 Broadcast Published!"); 
-                inputField.value = ""; // Auto-clear input
-                fetchNotice(); 
+                fetchNotices(); // Call notices fetch to refresh
             } else {
+                console.error(error);
                 alert("Cloud Error: " + error.message);
-            }
-        }
-
-        function prepareNoticeEdit() {
-            document.getElementById('notice-input').value = activeNoticeString;
-            document.getElementById('notice-input').focus();
-        }
-
-        async function clearNotice() {
-            if(!confirm("Delete current notice?")) return;
-            const { error } = await supabaseClient
-                .from('notices')
-                .update({ content: "No active notices.", updated_at: new Date().toISOString() })
-                .eq('id', 1);
-            if(!error) {
-                document.getElementById('notice-input').value = "";
-                fetchNotice();
             }
         }
 
