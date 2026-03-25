@@ -233,20 +233,62 @@
             });
         }
 
+        // FIXED: Robust Video Addition with Auto-Thumbnail
+        async function addVideo() {
+            const title = document.getElementById('v-title').value;
+            const rawUrl = document.getElementById('v-url').value;
+            const cat = document.getElementById('v-cat').value;
+            
+            if(!title || !rawUrl) return alert("Fill all fields");
+
+            let vidId = "";
+            try {
+                if (rawUrl.includes("v=")) {
+                    vidId = rawUrl.split("v=")[1].split("&")[0];
+                } else if (rawUrl.includes("youtu.be/")) {
+                    vidId = rawUrl.split("youtu.be/")[1].split("?")[0];
+                } else {
+                    vidId = rawUrl.split("/").pop();
+                }
+            } catch (e) {
+                return alert("Invalid YouTube URL");
+            }
+
+            const autoThumb = `https://i.ytimg.com/vi/${vidId}/maxresdefault.jpg`;
+
+            const { error } = await supabaseClient.from('videos').insert([{ 
+                title: title, 
+                url: vidId, 
+                category: cat,
+                thumbnail_url: autoThumb 
+            }]);
+
+            if(!error) { 
+                document.getElementById('v-title').value = ""; 
+                document.getElementById('v-url').value = ""; 
+                alert("Video Published!");
+                fetchVideos(); 
+            } else {
+                console.error("Supabase Error:", error.message);
+                alert("Database Error. Ensure 'thumbnail_url' column exists.");
+            }
+        }
+
+        // FIXED: Robust Paid Course Launch
         async function publishPaidCourse() {
             const title = document.getElementById('c-title').value;
             const price = document.getElementById('c-price').value;
             const desc = document.getElementById('c-desc').value;
-            const thumb = document.getElementById('c-thumb').value || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop";
+            const thumb = document.getElementById('c-thumb').value;
             const link = document.getElementById('c-playlist').value;
 
-            if(!title || !price || !link || !desc) return alert("Please fill all fields, including description!");
+            if(!title || !price || !link || !desc) return alert("Please fill all required fields!");
 
             const { error } = await supabaseClient.from('paid_courses').insert([{ 
                 title, 
-                price, 
+                price: parseInt(price), 
                 description: desc,
-                thumbnail_url: thumb, 
+                thumbnail_url: thumb || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000", 
                 video_playlist_link: link 
             }]);
             
@@ -255,7 +297,8 @@
                 loadPaidCourses();
                 ['c-title', 'c-price', 'c-thumb', 'c-playlist', 'c-desc'].forEach(id => document.getElementById(id).value = "");
             } else {
-                alert("Error launching course. Check database column.");
+                console.error("Supabase Error:", error.message);
+                alert("Error launching course. Check database columns.");
             }
         }
 
@@ -404,22 +447,6 @@
             }
         }
 
-        async function addVideo() {
-            const title = document.getElementById('v-title').value;
-            const url = document.getElementById('v-url').value;
-            const cat = document.getElementById('v-cat').value;
-            
-            if(!title || !url) return alert("Fill all fields");
-
-            const vidId = url.includes("v=") ? url.split("v=")[1].split("&")[0] : url.split("/").pop();
-            const { error } = await supabaseClient.from('videos').insert([{ title, url: vidId, category: cat }]);
-            if(!error) { 
-                document.getElementById('v-title').value = ""; 
-                document.getElementById('v-url').value = ""; 
-                fetchVideos(); 
-            }
-        }
-
         function setTab(t) {
             currentTab = t;
             ['SSC', 'HSC', 'Admission'].forEach(tab => {
@@ -449,12 +476,19 @@
 
             grid.innerHTML = filtered.map(v => `
                 <div class="group">
-                    <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5">
+                    <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5 relative">
                         <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
+                        ${isAdmin ? `<button onclick="deleteVideo('${v.id}')" class="absolute top-2 right-2 bg-black/60 p-2 rounded-full text-rose-500 hover:bg-rose-600 hover:text-white transition-all">✕</button>` : ''}
                     </div>
                     <h3 class="mt-4 font-black">${v.title}</h3>
                 </div>
             `).join('');
+        }
+
+        async function deleteVideo(id) {
+            if(!confirm("Delete this video?")) return;
+            const { error } = await supabaseClient.from('videos').delete().eq('id', id);
+            if(!error) fetchVideos();
         }
 
         function logout() { localStorage.removeItem('eduverse_session'); location.reload(); }
