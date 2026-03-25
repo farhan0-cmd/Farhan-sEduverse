@@ -19,7 +19,6 @@
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #e11d48; border-radius: 10px; }
         .sidebar-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .glass-card { background: rgba(17, 17, 17, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -56,46 +55,33 @@
 
         <div class="max-w-7xl mx-auto p-6">
             <div id="admin-panel" class="hidden mb-12 bg-[#111] border-2 border-dashed border-rose-600/30 rounded-[2.5rem] p-10">
-                <div class="flex justify-between items-start mb-8">
-                    <div>
-                        <h2 class="text-2xl font-black text-rose-500 italic uppercase">Operator Dashboard</h2>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Manage Cloud Storage & Broadcasts</p>
-                    </div>
-                    <div class="bg-[#050505] border border-white/5 px-8 py-4 rounded-3xl text-right shadow-2xl">
-                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest block mb-1">Total Students</span>
-                        <span id="user-count" class="text-4xl font-black text-white">0</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                    <input id="v-url" placeholder="YouTube Link/ID" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none cursor-pointer">
+                <h2 class="text-2xl font-black text-rose-500 italic uppercase mb-8">Operator Dashboard</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10 pb-10 border-b border-white/5">
+                    <input id="v-title" placeholder="Lesson Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600">
+                    <input id="v-url" placeholder="YouTube URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600">
+                    <select id="v-cat" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
                         <option value="SSC">SSC</option>
                         <option value="HSC">HSC</option>
                         <option value="Admission">Admission</option>
                     </select>
-                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl p-4 transition-all shadow-lg shadow-rose-900/20">Publish Video</button>
+                    <button onclick="addVideo()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl p-4">Publish Video</button>
                 </div>
 
-                <div class="pt-8 border-t border-white/5">
+                <div>
                     <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
                     <div class="flex flex-col md:flex-row gap-4 items-center">
-                        <input id="notice-input" placeholder="Type your message for all students here..." class="flex-1 w-full bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
-                        <button id="broadcast-btn" onclick="updateNotice()" class="w-full md:w-auto bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl whitespace-nowrap">Push Broadcast</button>
+                        <input id="notice-input" placeholder="Type your message here..." class="flex-1 w-full bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600">
+                        <button id="broadcast-btn" onclick="publishNewNotice()" class="w-full md:w-auto bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl">Push Broadcast</button>
                     </div>
                 </div>
             </div>
 
             <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-16">
-                <div class="flex gap-4 p-1.5 bg-[#111] rounded-[2rem] w-full md:w-auto border border-white/5">
+                <div class="flex gap-4 p-1.5 bg-[#111] rounded-[2rem] border border-white/5">
                     <button onclick="setTab('SSC')" id="tab-SSC" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">SSC</button>
                     <button onclick="setTab('HSC')" id="tab-HSC" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">HSC</button>
                     <button onclick="setTab('Admission')" id="tab-Admission" class="tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm transition-all">Admission</button>
-                </div>
-                <div class="relative w-full md:w-96">
-                    <input type="text" id="search-bar" onkeyup="renderVideos()" placeholder="Search lectures..." class="w-full bg-[#111] border border-white/5 rounded-[1.8rem] p-5 pl-14 text-sm outline-none focus:border-rose-600/50 transition-all shadow-xl">
-                    <span class="absolute left-6 top-5 text-gray-600">🔍</span>
                 </div>
             </div>
 
@@ -103,10 +89,10 @@
         </div>
     </div>
 
-    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 max-w-[85%] bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8">
+    <div id="notice-sidebar" class="fixed inset-y-0 right-0 w-85 max-w-[85%] bg-[#0a0a0a] border-l border-white/5 shadow-2xl sidebar-transition translate-x-full z-50 p-8 overflow-y-auto">
         <div class="flex justify-between items-center mb-10">
             <h3 class="text-2xl font-black text-white italic">NOTICES</h3>
-            <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex items-center justify-center bg-white/5 rounded-full hover:bg-rose-600 transition-all">✕</button>
+            <button onclick="toggleNoticeSidebar()" class="w-10 h-10 flex bg-white/5 rounded-full items-center justify-center">✕</button>
         </div>
         <div id="sidebar-content" class="space-y-6"></div>
     </div>
@@ -135,23 +121,12 @@
             await fetchVideos();
         };
 
-        async function fetchVideos() {
-            const { data, error } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
-            if (!error) { videos = data; renderVideos(); }
-        }
-
         async function handleLogin(isOp) {
             const phone = document.getElementById('login-phone').value;
             const pass = document.getElementById('login-pass').value;
-            if(!phone) return alert("Credentials required!");
-
-            if(isOp) {
-                if(phone === MASTER_PHONE && pass === MASTER_PASS) { isAdmin = true; }
-                else { return alert("❌ Unauthorized Operator!"); }
-            } else {
-                isAdmin = false;
-                await supabaseClient.from('profiles').upsert({ phone: phone, last_login: new Date() }, { onConflict: 'phone' });
-            }
+            if(isOp && phone === MASTER_PHONE && pass === MASTER_PASS) isAdmin = true;
+            else if(!isOp && phone) isAdmin = false;
+            else return alert("Invalid Login");
 
             localStorage.setItem('eduverse_session', JSON.stringify({ phone, isAdmin }));
             showApp();
@@ -161,154 +136,119 @@
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             fetchNotices();
-            
-            if(isAdmin) { 
-                document.getElementById('admin-panel').classList.remove('hidden'); 
+            if(isAdmin) {
+                document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-tag').classList.remove('hidden');
-                fetchUserCount();
             }
-            renderVideos();
-        }
-
-        function toggleNoticeSidebar() {
-            const sb = document.getElementById('notice-sidebar');
-            const ov = document.getElementById('sidebar-overlay');
-            const dot = document.getElementById('notice-dot');
-            if(sb.classList.contains('translate-x-full')) {
-                sb.classList.remove('translate-x-full');
-                ov.classList.remove('hidden');
-                dot.classList.add('hidden'); 
-            } else {
-                sb.classList.add('translate-x-full');
-                ov.classList.add('hidden');
-            }
-        }
-
-        async function fetchUserCount() {
-            if (!isAdmin) return;
-            const { count, error } = await supabaseClient.from('profiles').select('*', { count: 'exact', head: true });
-            if (!error) document.getElementById('user-count').innerText = count;
         }
 
         async function fetchNotices() {
             const container = document.getElementById('sidebar-content');
             const { data, error } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
-
             if (error) return;
-            container.innerHTML = '';
 
-            data.forEach(notice => {
-                const dateObj = new Date(notice.updated_at || notice.created_at);
+            container.innerHTML = '';
+            data.forEach(n => {
                 container.innerHTML += `
-                    <div class="bg-[#111] border border-white/5 p-6 rounded-[2rem] shadow-inner relative group">
-                        <p class="text-[10px] text-rose-500 uppercase font-black tracking-widest mb-3">Admin Announcement</p>
-                        <p class="text-gray-200 leading-relaxed italic text-sm md:text-base">${notice.content}</p>
-                        <div class="mt-8 pt-4 border-t border-white/5 flex justify-between items-center">
-                            <span class="text-[9px] text-gray-600 font-bold uppercase tracking-widest">Posted: ${dateObj.toLocaleDateString()}</span>
-                            
+                    <div class="bg-[#111] border border-white/5 p-6 rounded-[2rem] relative">
+                        <p class="text-[10px] text-rose-500 font-black mb-2 uppercase">Announcement</p>
+                        <p class="text-gray-200 text-sm italic">${n.content}</p>
+                        <div class="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
+                            <span class="text-[9px] text-gray-600 font-bold uppercase">${new Date(n.created_at).toLocaleDateString()}</span>
                             ${isAdmin ? `
-                                <div class="flex gap-3">
-                                    <button onclick="prepareEdit('${notice.id}', \`${notice.content.replace(/'/g, "\\'")}\`)" class="text-blue-500 hover:text-white transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
+                                <div class="flex gap-4">
+                                    <button onclick="editNoticeUI('${n.id}', \`${n.content.replace(/'/g, "\\'")}\`)" class="text-blue-500 hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                     </button>
-                                    <button onclick="deleteNotice('${notice.id}')" class="text-rose-500 hover:text-white transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                    <button onclick="deleteNotice('${n.id}')" class="text-rose-500 hover:text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                 </div>
                             ` : ''}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
+            if(data.length > 0) document.getElementById('notice-dot').classList.remove('hidden');
         }
 
-        async function updateNotice() {
-            const newContent = document.getElementById('notice-input').value;
-            if(!newContent) return alert("Type something to broadcast!");
-            
-            const { error } = await supabaseClient.from('notices').insert([{ content: newContent }]);
+        async function publishNewNotice() {
+            const val = document.getElementById('notice-input').value;
+            if(!val) return alert("Empty notice!");
+            const { error } = await supabaseClient.from('notices').insert([{ content: val }]);
             if(!error) { 
-                alert("📢 Broadcast Published!"); 
                 document.getElementById('notice-input').value = "";
                 fetchNotices(); 
+                alert("Published!"); 
             }
         }
 
-        function prepareEdit(id, content) {
+        function editNoticeUI(id, content) {
             toggleNoticeSidebar();
-            document.getElementById('notice-input').value = content;
-            document.getElementById('notice-input').focus();
+            const input = document.getElementById('notice-input');
+            input.value = content;
+            input.focus();
             const btn = document.getElementById('broadcast-btn');
-            btn.innerText = "Update Notice";
-            btn.setAttribute('onclick', `saveEdit('${id}')`);
+            btn.innerText = "Save Changes";
+            btn.setAttribute('onclick', `updateNoticeRow('${id}')`);
+            btn.classList.add('bg-blue-600', 'text-white');
         }
 
-        async function saveEdit(id) {
-            const newContent = document.getElementById('notice-input').value;
-            const { error } = await supabaseClient.from('notices').update({ content: newContent }).eq('id', id);
+        async function updateNoticeRow(id) {
+            const val = document.getElementById('notice-input').value;
+            const { error } = await supabaseClient.from('notices').update({ content: val }).eq('id', id);
             if(!error) {
-                alert("Updated!");
-                document.getElementById('notice-input').value = "";
                 const btn = document.getElementById('broadcast-btn');
                 btn.innerText = "Push Broadcast";
-                btn.setAttribute('onclick', "updateNotice()");
+                btn.setAttribute('onclick', "publishNewNotice()");
+                btn.classList.remove('bg-blue-600', 'text-white');
+                document.getElementById('notice-input').value = "";
                 fetchNotices();
+                alert("Updated!");
             }
         }
 
         async function deleteNotice(id) {
-            if(!confirm("Erase this notice?")) return;
+            if(!confirm("Delete?")) return;
             const { error } = await supabaseClient.from('notices').delete().eq('id', id);
             if(!error) fetchNotices();
         }
 
+        function toggleNoticeSidebar() {
+            const sb = document.getElementById('notice-sidebar');
+            const ov = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('translate-x-full');
+            ov.classList.toggle('hidden');
+        }
+
+        async function fetchVideos() {
+            const { data, error } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
+            if (!error) { videos = data; renderVideos(); }
+        }
+
         async function addVideo() {
             const title = document.getElementById('v-title').value;
-            const urlInput = document.getElementById('v-url').value;
+            const url = document.getElementById('v-url').value;
             const cat = document.getElementById('v-cat').value;
-            if(!title || !urlInput) return alert("Fill all details!");
-            let videoId = urlInput.includes("v=") ? urlInput.split("v=")[1].split("&")[0] : urlInput.split("/").pop();
-            const { error } = await supabaseClient.from('videos').insert([{ title, category: cat, url: videoId }]);
-            if (!error) { 
-                alert("🚀 Published!"); 
-                document.getElementById('v-title').value = ""; 
-                document.getElementById('v-url').value = ""; 
-                fetchVideos(); 
-            }
+            const vidId = url.includes("v=") ? url.split("v=")[1].split("&")[0] : url.split("/").pop();
+            const { error } = await supabaseClient.from('videos').insert([{ title, url: vidId, category: cat }]);
+            if(!error) { document.getElementById('v-title').value = ""; document.getElementById('v-url').value = ""; fetchVideos(); }
         }
 
         function setTab(t) {
             currentTab = t;
-            document.querySelectorAll('.tab-btn').forEach(btn => { 
-                btn.className = "tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm bg-[#121212] text-gray-500 hover:text-white transition-all"; 
-            });
-            const activeBtn = document.getElementById('tab-' + t);
-            activeBtn.className = "tab-btn px-10 py-4 rounded-[1.5rem] font-black text-sm bg-rose-600 text-white shadow-xl shadow-rose-900/30";
             renderVideos();
         }
 
         function renderVideos() {
             const grid = document.getElementById('video-grid');
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
             grid.innerHTML = '';
-            const filtered = videos.filter(v => v.category === currentTab && v.title.toLowerCase().includes(searchTerm));
-            filtered.forEach(v => {
+            videos.filter(v => v.category === currentTab).forEach(v => {
                 grid.innerHTML += `
                     <div class="group">
-                        <div class="aspect-video bg-black rounded-[2.5rem] overflow-hidden border-2 border-white/5 shadow-2xl group-hover:border-rose-600 transition-all duration-500">
+                        <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5">
                             <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
                         </div>
-                        <div class="mt-8 flex justify-between items-start px-4">
-                            <div>
-                                <h3 class="text-xl font-black group-hover:text-rose-500 transition-colors tracking-tight leading-tight">${v.title}</h3>
-                                <p class="text-[10px] text-gray-600 mt-2 uppercase font-black tracking-widest">${v.category} MODULE</p>
-                            </div>
-                            ${isAdmin ? `<button onclick="deleteVideo(${v.id})" class="bg-white/5 hover:bg-rose-600 p-3 rounded-full transition-all">✕</button>` : ''}
-                        </div>
+                        <h3 class="mt-4 font-black">${v.title}</h3>
                     </div>`;
             });
         }
