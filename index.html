@@ -21,6 +21,7 @@
         .sidebar-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
         .course-card:hover { transform: translateY(-5px); border-color: #e11d48; }
+        textarea { resize: none; }
     </style>
 </head>
 <body>
@@ -79,12 +80,13 @@
                 </div>
 
                 <div id="adm-sec-paid" class="hidden space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <input id="c-title" placeholder="Course Title" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
                         <input id="c-price" type="number" placeholder="Price (BDT)" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <input id="c-thumb" placeholder="Thumbnail URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <input id="c-playlist" placeholder="Secret Video/Playlist Link" class="md:col-span-2 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
-                        <button onclick="publishPaidCourse()" class="bg-rose-600 text-white font-bold rounded-2xl p-4">Launch Premium Course</button>
+                        <input id="c-thumb" placeholder="Thumbnail Image URL" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
+                        <input id="c-playlist" placeholder="Secret Playlist Link" class="bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none">
+                        <textarea id="c-desc" placeholder="Course Description (e.g. 1500+ MCQ Solve, Tips & Tricks...)" class="md:col-span-2 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none h-32"></textarea>
+                        <button onclick="publishPaidCourse()" class="md:col-span-2 bg-rose-600 text-white font-black rounded-2xl p-4 uppercase tracking-widest">Launch Premium Course</button>
                     </div>
                 </div>
 
@@ -162,6 +164,8 @@
         let isAdmin = false;
         let currentUserPhone = "";
         let selectedCourseId = null;
+        let videos = [];
+        let currentTab = 'SSC';
 
         window.onload = async function() {
             const savedUser = localStorage.getItem('eduverse_session');
@@ -175,7 +179,6 @@
             fetchVideos();
         };
 
-        // NAVIGATION & VIEW LOGIC
         function switchView(view) {
             const free = document.getElementById('free-view');
             const paid = document.getElementById('paid-view');
@@ -218,7 +221,6 @@
             }
         }
 
-        // --- ADMIN OPERATOR LOGIC ---
         function setAdminTab(tab) {
             const sections = ['free', 'paid', 'verify'];
             sections.forEach(s => {
@@ -234,16 +236,26 @@
         async function publishPaidCourse() {
             const title = document.getElementById('c-title').value;
             const price = document.getElementById('c-price').value;
+            const desc = document.getElementById('c-desc').value;
             const thumb = document.getElementById('c-thumb').value || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop";
             const link = document.getElementById('c-playlist').value;
 
-            if(!title || !price || !link) return alert("Fill required fields!");
+            if(!title || !price || !link || !desc) return alert("Please fill all fields, including description!");
 
-            const { error } = await supabaseClient.from('paid_courses').insert([{ title, price, thumbnail_url: thumb, video_playlist_link: link }]);
+            const { error } = await supabaseClient.from('paid_courses').insert([{ 
+                title, 
+                price, 
+                description: desc,
+                thumbnail_url: thumb, 
+                video_playlist_link: link 
+            }]);
+            
             if(!error) {
                 alert("Premium Course Launched!");
                 loadPaidCourses();
-                ['c-title', 'c-price', 'c-thumb', 'c-playlist'].forEach(id => document.getElementById(id).value = "");
+                ['c-title', 'c-price', 'c-thumb', 'c-playlist', 'c-desc'].forEach(id => document.getElementById(id).value = "");
+            } else {
+                alert("Error launching course. Check database column.");
             }
         }
 
@@ -254,7 +266,7 @@
                 container.innerHTML = data.map(e => `
                     <div class="bg-black/50 border border-white/5 p-4 rounded-2xl flex justify-between items-center">
                         <div>
-                            <p class="text-white font-bold">${e.paid_courses.title}</p>
+                            <p class="text-white font-bold">${e.paid_courses ? e.paid_courses.title : 'Deleted Course'}</p>
                             <p class="text-[10px] text-gray-500">Phone: ${e.student_phone} | TrxID: ${e.trx_id}</p>
                         </div>
                         <div class="flex gap-2">
@@ -273,11 +285,10 @@
             if(!error) {
                 alert("Status Updated!");
                 fetchEnrollments();
-                if(document.getElementById('paid-view').classList.contains('hidden') === false) loadPaidCourses();
+                if(!document.getElementById('paid-view').classList.contains('hidden')) loadPaidCourses();
             }
         }
 
-        // --- STUDENT PAID ACADEMY LOGIC ---
         async function loadPaidCourses() {
             const container = document.getElementById('paid-course-grid');
             container.innerHTML = `<p class="text-gray-500">Scanning Academy...</p>`;
@@ -287,16 +298,22 @@
 
             const accessList = access ? access.map(a => a.course_id) : [];
 
+            if (!courses || courses.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 text-center py-10">No premium courses available yet.</p>`;
+                return;
+            }
+
             container.innerHTML = courses.map(c => {
                 const isPaid = accessList.includes(c.id);
                 return `
                     <div class="course-card bg-[#111] border border-white/5 rounded-[2.5rem] overflow-hidden transition-all flex flex-col h-full">
                         <div class="h-48 bg-gray-800 relative">
-                            <img src="${c.thumbnail_url}" class="w-full h-full object-cover">
+                            <img src="${c.thumbnail_url}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000&auto=format&fit=crop'">
                             <div class="absolute top-4 right-4 bg-rose-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Premium</div>
                         </div>
                         <div class="p-8 flex flex-col flex-1">
-                            <h3 class="text-xl font-black mb-4 leading-tight">${c.title}</h3>
+                            <h3 class="text-xl font-black mb-2 leading-tight">${c.title}</h3>
+                            <p class="text-gray-500 text-sm mb-6 line-clamp-3 italic">${c.description || 'No description provided.'}</p>
                             <div class="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
                                 <div>
                                     <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Price</p>
@@ -344,7 +361,6 @@
             }
         }
 
-        // --- PRE-EXISTING LOGIC (RETAINED) ---
         async function fetchNotices() {
             const container = document.getElementById('sidebar-content');
             const { data } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
@@ -382,16 +398,26 @@
 
         async function fetchVideos() {
             const { data } = await supabaseClient.from('videos').select('*').order('created_at', { ascending: false });
-            if (data) { videos = data; renderVideos(); }
+            if (data) { 
+                videos = data; 
+                renderVideos(); 
+            }
         }
 
         async function addVideo() {
             const title = document.getElementById('v-title').value;
             const url = document.getElementById('v-url').value;
             const cat = document.getElementById('v-cat').value;
+            
+            if(!title || !url) return alert("Fill all fields");
+
             const vidId = url.includes("v=") ? url.split("v=")[1].split("&")[0] : url.split("/").pop();
             const { error } = await supabaseClient.from('videos').insert([{ title, url: vidId, category: cat }]);
-            if(!error) { document.getElementById('v-title').value = ""; document.getElementById('v-url').value = ""; fetchVideos(); }
+            if(!error) { 
+                document.getElementById('v-title').value = ""; 
+                document.getElementById('v-url').value = ""; 
+                fetchVideos(); 
+            }
         }
 
         function setTab(t) {
@@ -411,7 +437,17 @@
 
         function renderVideos() {
             const grid = document.getElementById('video-grid');
-            grid.innerHTML = videos.filter(v => v.category === currentTab).map(v => `
+            if(!videos || videos.length === 0) {
+                grid.innerHTML = `<p class="text-gray-500 col-span-full text-center py-20">No videos found in this sector.</p>`;
+                return;
+            }
+            const filtered = videos.filter(v => v.category === currentTab);
+            if(filtered.length === 0) {
+                grid.innerHTML = `<p class="text-gray-500 col-span-full text-center py-20">No videos found for ${currentTab}.</p>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(v => `
                 <div class="group">
                     <div class="aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/5">
                         <iframe class="w-full h-full" src="https://www.youtube.com/embed/${v.url}" frameborder="0" allowfullscreen></iframe>
