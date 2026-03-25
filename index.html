@@ -108,9 +108,9 @@
                 </div>
                 <div id="course-catalog-container">
                     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
-                        <button onclick="setTab('SSC')" id="tab-paid-SSC" class="tab-active px-6 py-2 rounded-full font-bold transition">SSC</button>
-                        <button onclick="setTab('HSC')" id="tab-paid-HSC" class="tab-inactive px-6 py-2 rounded-full font-bold transition">HSC</button>
-                        <button onclick="setTab('Admission')" id="tab-paid-Admission" class="tab-inactive px-6 py-2 rounded-full font-bold transition">Admission</button>
+                        <button onclick="setTabPaid('SSC')" id="tab-paid-SSC" class="tab-active px-6 py-2 rounded-full font-bold transition">SSC</button>
+                        <button onclick="setTabPaid('HSC')" id="tab-paid-HSC" class="tab-inactive px-6 py-2 rounded-full font-bold transition">HSC</button>
+                        <button onclick="setTabPaid('Admission')" id="tab-paid-Admission" class="tab-inactive px-6 py-2 rounded-full font-bold transition">Admission</button>
                     </div>
                     <div id="course-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
                 </div>
@@ -411,6 +411,36 @@
             }); 
         }
 
+        // Separate function to update only paid view tabs (keeps free tabs untouched)
+        function setTabPaid(t) {
+            currentCategory = t;
+            fetchCourses();  // Refresh paid courses with new category
+            // Update styling for paid category tabs only
+            const paidTabs = ['SSC', 'HSC', 'Admission'];
+            paidTabs.forEach(tab => {
+                const btn = document.getElementById(`tab-paid-${tab}`);
+                if (btn) {
+                    if (tab === t) {
+                        btn.classList.replace('tab-inactive', 'tab-active');
+                    } else {
+                        btn.classList.replace('tab-active', 'tab-inactive');
+                    }
+                }
+            });
+            // Also sync free tabs if visible? not necessary but ensure consistency.
+            const freeTabs = ['SSC', 'HSC', 'Admission'];
+            freeTabs.forEach(tab => {
+                const btn = document.getElementById(`tab-${tab}`);
+                if (btn) {
+                    if (tab === t) {
+                        btn.classList.replace('tab-inactive', 'tab-active');
+                    } else {
+                        btn.classList.replace('tab-active', 'tab-inactive');
+                    }
+                }
+            });
+        }
+
         function toggleNoticeSidebar() {
             const sb = document.getElementById('notice-sidebar');
             sb.classList.toggle('translate-x-full');
@@ -426,10 +456,17 @@
             if (v === 'paid') {
                 btn.innerText = 'Go Home';
                 btn.onclick = () => switchView('free');
+                // Ensure that if we switch to paid, classroom is closed properly and category sync
+                closeClassroom();
+                // Sync currentCategory to paid tabs visually
+                setTabPaid(currentCategory);
             } else {
                 btn.innerText = 'Paid Academy';
                 btn.onclick = () => switchView('paid');
+                // closeClassroom already called? but just in case
                 closeClassroom(); 
+                // sync free tabs to current category
+                setTab(currentCategory);
             }
         }
 
