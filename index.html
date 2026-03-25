@@ -80,9 +80,23 @@
                 </div>
 
                 <div class="pt-8 border-t border-white/5">
-                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Update Student Notice</h3>
+                    <h3 class="text-xs font-black text-rose-500 uppercase tracking-widest mb-4">📢 Broadcast Control</h3>
+                    
+                    <div id="admin-notice-manager" class="mb-6 hidden">
+                         <div class="flex items-center justify-between bg-[#050505] p-4 rounded-2xl border border-white/5">
+                            <div class="flex-1 pr-4">
+                                <p class="text-[10px] text-gray-500 uppercase font-bold mb-1">Live Notice Content:</p>
+                                <p id="current-notice-display" class="text-sm text-gray-300 italic">Loading...</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="prepareNoticeEdit()" class="px-4 py-2 bg-blue-600/20 text-blue-500 rounded-lg hover:bg-blue-600 hover:text-white transition-all text-xs font-bold uppercase">Edit</button>
+                                <button onclick="clearNotice()" class="px-4 py-2 bg-rose-600/20 text-rose-500 rounded-lg hover:bg-rose-600 hover:text-white transition-all text-xs font-bold uppercase">Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="flex flex-col md:flex-row gap-4">
-                        <input id="notice-input" placeholder="Type your message for all students here..." class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
+                        <input id="notice-input" placeholder="Type new broadcast message..." class="flex-1 bg-[#1a1a1a] border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-rose-600 transition-all">
                         <button onclick="updateNotice()" class="bg-white text-black font-black px-10 py-4 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl">Push Broadcast</button>
                     </div>
                 </div>
@@ -133,6 +147,7 @@
         let isAdmin = false;
         let currentTab = 'SSC';
         let videos = [];
+        let activeNoticeString = "";
 
         window.onload = async function() {
             const savedUser = localStorage.getItem('eduverse_session');
@@ -175,6 +190,7 @@
             if(isAdmin) { 
                 document.getElementById('admin-panel').classList.remove('hidden'); 
                 document.getElementById('admin-tag').classList.remove('hidden');
+                document.getElementById('admin-notice-manager').classList.remove('hidden');
                 fetchUserCount();
             }
             renderVideos();
@@ -201,27 +217,29 @@
         }
 
         async function fetchNotice() {
-            // Updated to use .single() for precision
             const { data, error } = await supabaseClient.from('notices').select('*').eq('id', 1).maybeSingle();
             if (!error && data) {
+                activeNoticeString = data.content;
                 document.getElementById('sidebar-notice-text').innerText = data.content;
+                
                 const dateObj = new Date(data.updated_at);
                 document.getElementById('notice-time').innerText = "Posted: " + dateObj.toLocaleDateString();
                 
-                // Only show notification dot if sidebar is hidden
                 if(document.getElementById('notice-sidebar').classList.contains('translate-x-full')) {
                     document.getElementById('notice-dot').classList.remove('hidden');
                 }
                 
-                if(isAdmin) document.getElementById('notice-input').value = data.content;
+                if(isAdmin) {
+                    document.getElementById('current-notice-display').innerText = `"${data.content}"`;
+                }
             }
         }
 
         async function updateNotice() {
-            const newContent = document.getElementById('notice-input').value;
+            const inputField = document.getElementById('notice-input');
+            const newContent = inputField.value;
             if(!newContent) return alert("Type something to broadcast!");
             
-            // Fixed .update() targeting the specific row we created in SQL
             const { error } = await supabaseClient
                 .from('notices')
                 .update({ 
@@ -232,11 +250,27 @@
                 
             if(!error) { 
                 alert("📢 Broadcast Published!"); 
+                inputField.value = ""; // FIX: Clears input box after success
                 fetchNotice(); 
             } else {
-                console.error(error);
                 alert("Cloud Error: " + error.message);
             }
+        }
+
+        // Feature: Move current notice into input for editing
+        function prepareNoticeEdit() {
+            document.getElementById('notice-input').value = activeNoticeString;
+            document.getElementById('notice-input').focus();
+        }
+
+        // Feature: Clear notice logic
+        async function clearNotice() {
+            if(!confirm("Clear notice board for all students?")) return;
+            const { error } = await supabaseClient
+                .from('notices')
+                .update({ content: "No active notices.", updated_at: new Date().toISOString() })
+                .eq('id', 1);
+            if(!error) fetchNotice();
         }
 
         async function addVideo() {
