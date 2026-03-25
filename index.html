@@ -9,9 +9,9 @@
     <style>
         body { background-color: #080808; color: white; font-family: sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .tab-active { background-color: #e11d48; color: white; }
-        .tab-inactive { background-color: #1a1a1a; color: #9ca3af; }
-        /* Notice Sidebar Transition */
+        /* Tab Highlight Fixes */
+        .tab-active { background-color: #e11d48 !important; color: white !important; }
+        .tab-inactive { background-color: #1a1a1a !important; color: #9ca3af !important; }
         #notice-sidebar { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
@@ -72,7 +72,9 @@
                     <div id="admin-notice-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
                 </div>
 
-                <div id="adm-verify" class="hidden space-y-2" id="pending-requests"></div>
+                <div id="adm-verify" class="hidden space-y-2">
+                    <div id="pending-requests" class="space-y-2"></div>
+                </div>
             </div>
 
             <div id="free-view">
@@ -121,7 +123,6 @@
 
         let user = null, isAdmin = false, currentCategory = 'SSC', allVideos = [];
 
-        // --- Helper: Extract IDs from full links ---
         const getVidId = (url) => url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|.*\/|.*embed\/))([^"&?\/\s]{11})/)?. [1] || url;
         const getListId = (url) => url.match(/[&?]list=([^&]+)/)?. [1] || url;
 
@@ -157,10 +158,12 @@
         function showMain() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            if(isAdmin) document.getElementById('admin-panel').classList.remove('hidden');
+            if(isAdmin) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                fetchEnrollments();
+            }
         }
 
-        // --- Video Management ---
         async function fetchVideos() {
             const { data } = await supabaseClient.from('videos').select('*');
             allVideos = data || [];
@@ -192,7 +195,6 @@
             fetchVideos();
         }
 
-        // --- Course Management (WITH DELETE) ---
         async function fetchCourses() {
             const { data: courses } = await supabaseClient.from('paid_courses').select('*');
             const { data: access } = await supabaseClient.from('course_access').select('course_id').eq('student_phone', user).eq('status', 'approved');
@@ -200,7 +202,7 @@
 
             document.getElementById('course-grid').innerHTML = courses?.map(c => `
                 <div class="bg-[#111] rounded-3xl overflow-hidden border border-white/5 p-4 relative">
-                    ${isAdmin ? `<button onclick="deleteCourse(${c.id})" class="absolute top-6 right-6 bg-rose-600 text-white w-8 h-8 rounded-full z-10">✕</button>` : ''}
+                    ${isAdmin ? `<button onclick="deleteCourse(${c.id})" class="absolute top-6 right-6 bg-rose-600 text-white w-8 h-8 rounded-full z-10 flex items-center justify-center">✕</button>` : ''}
                     <img src="${c.thumbnail_url}" class="w-full h-40 object-cover rounded-2xl mb-4">
                     <h3 class="font-bold text-lg mb-2">${c.title}</h3>
                     <div class="flex justify-between items-center">
@@ -220,7 +222,6 @@
 
         async function deleteCourse(id) { if(confirm("Delete Course?")) { await supabaseClient.from('paid_courses').delete().eq('id', id); fetchCourses(); } }
 
-        // --- Classroom System (STAY IN SITE) ---
         function enterClass(listId) {
             document.getElementById('course-catalog').classList.add('hidden');
             document.getElementById('classroom-ui').classList.remove('hidden');
@@ -232,7 +233,6 @@
             document.getElementById('classroom-player').src = "";
         }
 
-        // --- Notice Management (RESTORED Edit/Delete) ---
         async function fetchNotices() {
             const { data } = await supabaseClient.from('notices').select('*').order('created_at', { ascending: false });
             document.getElementById('notice-content').innerHTML = data?.map(n => `<div class="bg-white/5 p-4 rounded-xl text-sm border border-white/5">${n.content}</div>`).join('');
@@ -258,11 +258,59 @@
         async function deleteNotice(id) { await supabaseClient.from('notices').delete().eq('id', id); fetchNotices(); }
         async function editNotice(id, old) { const n = prompt("Update notice:", old); if(n) { await supabaseClient.from('notices').update({ content: n }).eq('id', id); fetchNotices(); } }
 
-        // --- Utility ---
-        function setTab(t) { currentCategory = t; renderVideos(); document.querySelectorAll('[id^="tab-"]').forEach(btn => btn.className = btn.id === `tab-${t}` ? 'tab-active px-6 py-2 rounded-full font-bold transition' : 'tab-inactive px-6 py-2 rounded-full font-bold transition'); }
+        // Fix: Payment Enrollment display
+        async function fetchEnrollments() {
+            const { data } = await supabaseClient.from('course_access').select('*, paid_courses(title)').eq('status', 'pending');
+            const container = document.getElementById('pending-requests');
+            if(container) {
+                container.innerHTML = data?.map(e => `
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                        <div class="text-xs">
+                            <p class="font-bold">${e.paid_courses?.title}</p>
+                            <p class="text-gray-500">${e.student_phone} | Trx: ${e.trx_id}</p>
+                        </div>
+                        <button onclick="verifyPay('${e.id}')" class="bg-green-600 px-3 py-1 rounded-lg text-[10px] font-bold">Approve</button>
+                    </div>
+                `).join('') || '<p class="text-xs text-gray-500">No pending payments</p>';
+            }
+        }
+
+        async function verifyPay(id) { 
+            await supabaseClient.from('course_access').update({ status: 'approved' }).eq('id', id); 
+            fetchEnrollments(); 
+            fetchCourses();
+        }
+
+        // Fix: Highlight Logic
+        function setTab(t) { 
+            currentCategory = t; 
+            renderVideos(); 
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                if(btn.id === `tab-${t}`) {
+                    btn.classList.replace('tab-inactive', 'tab-active');
+                } else {
+                    btn.classList.replace('tab-active', 'tab-inactive');
+                }
+            }); 
+        }
+
         function setAdminMode(m) { ['free','paid','notices','verify'].forEach(s => document.getElementById(`adm-${s}`).classList.toggle('hidden', s !== m)); }
-        function toggleNoticeSidebar() { document.getElementById('notice-sidebar').classList.toggle('translate-x-full'); }
-        function switchView(v) { document.getElementById('free-view').classList.toggle('hidden', v !== 'free'); document.getElementById('paid-view').classList.toggle('hidden', v !== 'paid'); document.getElementById('academy-btn').innerText = v === 'paid' ? 'Go Home' : 'Paid Academy'; }
+        
+        // Fix: Switch View logic for "Go Home"
+        function switchView(v) { 
+            document.getElementById('free-view').classList.toggle('hidden', v !== 'free'); 
+            document.getElementById('paid-view').classList.toggle('hidden', v !== 'paid'); 
+            const btn = document.getElementById('academy-btn');
+            if (v === 'paid') {
+                btn.innerText = 'Go Home';
+                btn.onclick = () => switchView('free');
+            } else {
+                btn.innerText = 'Paid Academy';
+                btn.onclick = () => switchView('paid');
+                closeClassroom(); // Reset video if leaving paid section
+            }
+        }
+
         function logout() { localStorage.clear(); location.reload(); }
         
         let activePayId = null;
@@ -272,6 +320,7 @@
             await supabaseClient.from('course_access').insert([{ student_phone: user, trx_id: trx, course_id: activePayId, status: 'pending' }]);
             document.getElementById('pay-modal').classList.add('hidden');
             alert("Payment submitted! Wait for approval.");
+            fetchEnrollments();
         }
     </script>
 </body>
