@@ -88,11 +88,29 @@
 
             <div id="paid-view" class="hidden">
                 <div id="classroom-ui" class="hidden">
-                    <button onclick="closeClassroom()" class="text-rose-500 mb-6 font-bold flex items-center gap-2">← Exit Classroom</button>
-                    <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                        <iframe id="classroom-player" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
-                    </div>
+    <button onclick="closeClassroom()" class="text-rose-500 mb-6 font-bold flex items-center gap-2">← Back to Academy</button>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+            <div class="aspect-video w-full bg-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                <iframe id="classroom-player" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <h2 id="now-playing-title" class="text-xl font-bold mt-4 text-rose-500">Select a Lesson</h2>
+        </div>
+
+        <div class="bg-[#111] rounded-3xl p-6 border border-white/5 h-[500px] overflow-y-auto">
+            <h3 class="font-bold mb-4 border-b border-white/10 pb-2 text-gray-400">Course Lessons</h3>
+            <div id="lesson-list" class="space-y-3">
                 </div>
+            
+            <div id="admin-lesson-controls" class="hidden mt-6 pt-6 border-t border-white/10">
+                <input id="new-lesson-title" placeholder="Lesson Title" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
+                <input id="new-lesson-vid" placeholder="YouTube Video ID" class="w-full bg-black text-xs p-2 rounded mb-2 border border-white/5">
+                <button onclick="addLessonToCourse()" class="w-full bg-blue-600 text-[10px] font-bold py-2 rounded">ADD LESSON</button>
+            </div>
+        </div>
+    </div>
+</div>
                 <div id="course-catalog">
                     <div class="flex gap-2 mb-8 overflow-x-auto pb-2">
                         <button onclick="setTab('SSC')" id="tab-paid-SSC" class="tab-active px-6 py-2 rounded-full font-bold transition">SSC</button>
@@ -167,6 +185,7 @@
             document.getElementById('main-app').classList.remove('hidden');
             if(isAdmin) {
                 document.getElementById('admin-panel').classList.remove('hidden');
+                if(isAdmin) document.getElementById('admin-lesson-controls').classList.remove('hidden');
                 fetchEnrollments();
             }
         }
@@ -227,9 +246,9 @@
                             <span class="text-rose-500 font-bold">৳${c.price}</span>
                             
                             ${isAdmin ? 
-                                `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition">Preview</button>` : 
+                                `<button onclick="enterClass(${c.id})" class="bg-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition">Preview</button>` : 
                                 (unlocked.includes(c.id) ? 
-                                    `<button onclick="enterClass('${c.video_playlist_link}')" class="bg-green-600 px-4 py-2 rounded-xl text-xs font-bold">Enter Class</button>` : 
+                                    `<button onclick="enterClass(${c.id})" class="bg-green-600 px-4 py-2 rounded-xl text-xs font-bold">Enter Class</button>` : 
                                     `<button onclick="openPay(${c.id}, '${c.title}')" class="bg-rose-600 px-4 py-2 rounded-xl text-xs font-bold">Buy Now</button>`)
                             }
                         </div>
@@ -264,11 +283,49 @@
 
         async function deleteCourse(id) { if(confirm("Delete Course?")) { await supabaseClient.from('paid_courses').delete().eq('id', id); fetchCourses(); } }
 
-        function enterClass(listId) {
+        let currentOpenCourseId = null;
+        async function enterClass(courseId) {
+            currentOpenCourseId = courseId;
             document.getElementById('course-catalog').classList.add('hidden');
             document.getElementById('classroom-ui').classList.remove('hidden');
-            document.getElementById('classroom-player').src = `https://www.youtube.com/embed/videoseries?list=${listId}`;
+            fetchLessons(courseId);
         }
+
+        async function fetchLessons(courseId) {
+            const { data: lessons } = await supabaseClient.from('course_lessons').select('*').eq('course_id', courseId).order('created_at', { ascending: true });
+            const list = document.getElementById('lesson-list');
+            if (lessons && lessons.length > 0) {
+                playLesson(lessons[0].video_id, lessons[0].lesson_title);
+                list.innerHTML = lessons.map(l => `
+                    <div onclick="playLesson('${l.video_id}', '${l.lesson_title.replace(/'/g, "\\'")}')" class="p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-rose-600/20 border border-white/5 transition flex justify-between items-center group">
+                        <span class="text-xs font-medium text-gray-300 group-hover:text-white">${l.lesson_title}</span>
+                        <div class="flex gap-2">${isAdmin ? `<button onclick="event.stopPropagation(); deleteLesson(${l.id})" class="text-rose-500 text-[10px]">✕</button>` : '▶'}</div>
+                    </div>`).join('');
+            } else {
+                list.innerHTML = `<p class="text-xs text-gray-500 text-center py-10">No lessons added yet.</p>`;
+                document.getElementById('classroom-player').src = "";
+            }
+        }
+
+        function playLesson(vidId, title) {
+            document.getElementById('classroom-player').src = `https://www.youtube.com/embed/${vidId}?autoplay=1`;
+            document.getElementById('now-playing-title').innerText = title;
+        }
+
+        async function addLessonToCourse() {
+            const title = document.getElementById('new-lesson-title').value;
+            const vid = getVidId(document.getElementById('new-lesson-vid').value);
+            if (title && vid && currentOpenCourseId) {
+                await supabaseClient.from('course_lessons').insert([{ course_id: currentOpenCourseId, lesson_title: title, video_id: vid }]);
+                document.getElementById('new-lesson-title').value = ""; document.getElementById('new-lesson-vid').value = "";
+                fetchLessons(currentOpenCourseId);
+            }
+        }
+
+        async function deleteLesson(id) {
+            if(confirm("Delete lesson?")) { await supabaseClient.from('course_lessons').delete().eq('id', id); fetchLessons(currentOpenCourseId); }
+        }
+
         function closeClassroom() {
             document.getElementById('course-catalog').classList.remove('hidden');
             document.getElementById('classroom-ui').classList.add('hidden');
