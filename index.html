@@ -429,14 +429,25 @@
 
 // Call this inside your showMain() function so it updates when you log in
 function showMain() {
-    document.getElementById('login-page').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
-    if(isAdmin) {
-        document.getElementById('admin-panel').classList.remove('hidden');
-        fetchEnrollments();
-        fetchStudentCount(); // New call here
-    }
-}
+            // Hide the login page and show the app
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            // STRICT ADMIN CHECK
+            const adminPanel = document.getElementById('admin-panel');
+            const lessonControls = document.getElementById('admin-lesson-controls');
+
+            if (isAdmin === true) {
+                adminPanel.classList.remove('hidden');
+                if (lessonControls) lessonControls.classList.remove('hidden');
+                fetchEnrollments();
+                fetchStudentCount();
+            } else {
+                // Ensure it's hidden if the user is a student
+                adminPanel.classList.add('hidden');
+                if (lessonControls) lessonControls.classList.add('hidden');
+            }
+        }
 
         // Separate function to update only paid view tabs (keeps free tabs untouched)
         function setTabPaid(t) {
