@@ -182,14 +182,20 @@
         }
 
         function showMain() {
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            if(isAdmin) {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('admin-lesson-controls').classList.remove('hidden');
-                fetchEnrollments();
-            }
-        }
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+
+    const adminPanel = document.getElementById('admin-panel');
+    
+    // Explicit check
+    if (isAdmin === true || isAdmin === "true") { 
+        adminPanel.style.display = "block"; // Force show
+        fetchEnrollments();
+        fetchStudentCount();
+    } else {
+        adminPanel.style.display = "none"; // Force hide for students
+    }
+}
 
         async function fetchVideos() {
             const { data } = await supabaseClient.from('videos').select('*');
