@@ -47,6 +47,13 @@
                     <button onclick="setAdminMode('paid')" class="bg-[#1a1a1a] p-2 rounded-lg text-sm">Manage Paid Courses</button>
                     <button onclick="setAdminMode('notices')" class="bg-[#1a1a1a] p-2 rounded-lg text-sm">Manage Notices</button>
                     <button onclick="setAdminMode('verify')" class="bg-[#1a1a1a] p-2 rounded-lg text-sm">Verify Payments</button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-rose-600/10 border border-rose-600/20 p-2 rounded-lg text-center">
+        <p class="text-[10px] text-gray-400 uppercase">Total Students</p>
+        <span id="student-count" class="text-xl font-bold text-rose-500">0</span>
+    </div>
+</div>
                 </div>
 
                 <div id="adm-free" class="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -410,6 +417,27 @@
                 }
             }); 
         }
+
+        async function fetchStudentCount() {
+    const { count, error } = await supabaseClient
+        .from('users')
+        .select('*', { count: 'exact', head: true });
+    
+    if (!error) {
+        document.getElementById('student-count').innerText = count;
+    }
+}
+
+// Call this inside your showMain() function so it updates when you log in
+function showMain() {
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+    if(isAdmin) {
+        document.getElementById('admin-panel').classList.remove('hidden');
+        fetchEnrollments();
+        fetchStudentCount(); // New call here
+    }
+}
 
         // Separate function to update only paid view tabs (keeps free tabs untouched)
         function setTabPaid(t) {
